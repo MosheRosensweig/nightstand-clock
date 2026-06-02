@@ -418,6 +418,37 @@
     animation: alarmFlash var(--flash-speed, 0.5s) infinite;
   }
 
+  /* WEATHER TIMELINE BAR */
+  .weather-timeline {
+    width: 100%;
+    overflow-x: auto;
+    display: none;
+    padding: 15px 0;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .weather-timeline::-webkit-scrollbar { display: none; }
+  .weather-timeline-inner {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px;
+    width: max-content;
+  }
+  .timeline-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    min-width: 60px;
+  }
+  .timeline-time { opacity: 0.6; font-size: 0.75rem; }
+  .timeline-temp { font-weight: 600; }
+  .timeline-icon { font-size: 1.2rem; }
+
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @media (max-width: 640px) {
     .date, .weather, .next-zman { font-size: 5vw; }
@@ -441,6 +472,9 @@
   </div>
   <div class="date" id="date"></div>
   <div class="weather" id="weather">🌙 loading forecast...</div>
+  <div class="weather-timeline" id="weatherTimeline">
+    <div class="weather-timeline-inner" id="timelineInner"></div>
+  </div>
   <div class="next-zman" id="nextZman">🕯️ Next Zman: --</div>
 </div>
 
@@ -462,6 +496,7 @@
       <div class="tabs">
         <div class="tab active" data-tab="tab-zmanim">🕯️ Zmanim</div>
         <div class="tab" data-tab="tab-alarms">⏰ Alarms</div>
+        <div class="tab" data-tab="tab-weather">🌤️ Weather</div>
         <div class="tab" data-tab="tab-display">🖥️ Display</div>
       </div>
 
@@ -484,18 +519,24 @@
         <button id="addAlarm" style="margin-top: 15px; background: rgba(0, 229, 255, 0.2);">➕ Add Alarm (max 10)</button>
       </div>
 
-      <!-- Display Tab -->
-      <div id="tab-display" class="tab-content">
-        <label>📆 Weekday Text Size</label>
-        <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
-        <label>⏲️ Time Extras (Seconds & AM/PM)</label>
-        <select id="showTimeExtras"><option value="true">Show unit</option><option value="false">Hide unit</option></select>
+      <!-- Weather Tab -->
+      <div id="tab-weather" class="tab-content">
         <label>🌤️ Weather format</label>
         <select id="weatherFmt">
           <option value="words">🌡️ 72°F · Clear sky</option>
           <option value="numbers">🌤️ 72°F</option>
           <option value="extended">📊 Extended (High/Low + Rain)</option>
         </select>
+        <label>📈 Weather Timeline Bar</label>
+        <select id="showWeatherTimeline"><option value="true">Show (Hourly)</option><option value="false">Hide</option></select>
+      </div>
+
+      <!-- Display Tab -->
+      <div id="tab-display" class="tab-content">
+        <label>📆 Weekday Text Size</label>
+        <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
+        <label>⏲️ Time Extras (Seconds & AM/PM)</label>
+        <select id="showTimeExtras"><option value="true">Show unit</option><option value="false">Hide unit</option></select>
         <label>📅 Date format</label>
         <select id="dateFmt"><option value="long">Monday, June 1, 2026</option><option value="medium">Mon, Jun 1</option><option value="numeric">6/1/2026</option></select>
         <label>✍️ Clock font family</label>
@@ -540,6 +581,8 @@
   const dateEl = document.getElementById('date');
   const weatherEl = document.getElementById('weather');
   const nextZmanEl = document.getElementById('nextZman');
+  const weatherTimeline = document.getElementById('weatherTimeline');
+  const timelineInner = document.getElementById('timelineInner');
   const clockContainer = document.getElementById('clock');
   const gearBtn = document.getElementById('gear');
   const modal = document.getElementById('modal');
@@ -561,6 +604,45 @@
   const showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix');
   const zmanColorPresetSelect = document.getElementById('zmanColorPreset');
   const zmanCustomColorInput = document.getElementById('zmanCustomColor');
+  const showWeatherTimelineSelect = document.getElementById('showWeatherTimeline');
+
+  // Helper: Get icon based on weather code
+  function getWeatherIcon(code) {
+    if (code >= 61 && code <= 65) return "🌧️";
+    if (code >= 71 && code <= 75) return "❄️";
+    if (code >= 95) return "⛈️";
+    if (code >= 3 && code <= 4) return "☁️";
+    return "☀️";
+  }
+
+  // Update hourly timeline
+  let lastWeatherData = null;
+  function updateWeatherTimeline(data) {
+    if (!data.hourly) return;
+    lastWeatherData = data;
+    timelineInner.innerHTML = '';
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Show next 24 hours
+    for (let i = currentHour; i < currentHour + 24; i++) {
+      const temp = data.hourly.temperature_2m[i];
+      const code = data.hourly.weathercode[i];
+      const timeIndex = i % 24;
+      const displayTime = timeIndex > 12 ? (timeIndex - 12) + "pm" : (timeIndex === 12 ? "12pm" : (timeIndex === 0 ? "12am" : timeIndex + "am"));
+      
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `
+        <span class="timeline-time">${displayTime}</span>
+        <span class="timeline-icon">${getWeatherIcon(code)}</span>
+        <span class="timeline-temp">${Math.round(temp)}°</span>
+      `;
+      timelineInner.appendChild(item);
+    }
+    const showTimeline = localStorage.showWeatherTimeline === 'true';
+    weatherTimeline.style.display = showTimeline ? 'block' : 'none';
+  }
 
   // Tabs Logic
   document.querySelectorAll('.tab').forEach(tab => {
@@ -647,9 +729,16 @@
     document.body.classList.add('alarm-active');
     
     activeAlarmTimeout = setTimeout(() => {
-      document.body.classList.remove('alarm-active');
-      activeAlarmTimeout = null;
+      stopAlarm();
     }, alarm.duration * 1000);
+  }
+
+  function stopAlarm() {
+    if (activeAlarmTimeout) {
+      clearTimeout(activeAlarmTimeout);
+      activeAlarmTimeout = null;
+    }
+    document.body.classList.remove('alarm-active');
   }
 
   document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
@@ -716,12 +805,10 @@
     if (lastTemperature === null) { weatherEl.textContent = "⛅ waiting for weather..."; return; }
     const fmt = localStorage.weatherFmt || 'extended';
     const tempRounded = Math.round(lastTemperature);
-    let icon = "☀️";
-    if (lastWeatherCode >= 61 && lastWeatherCode <= 65) icon = "🌧️";
-    else if (lastWeatherCode >= 71 && lastWeatherCode <= 75) icon = "❄️";
-    else if (lastWeatherCode >= 95) icon = "⛈️";
-    else if (lastWeatherCode >= 3 && lastWeatherCode <= 4) icon = "☁️";
-    else icon = "☀️";
+    const icon = getWeatherIcon(lastWeatherCode);
+    
+    const showTimeline = localStorage.showWeatherTimeline === 'true';
+    weatherTimeline.style.display = showTimeline ? 'block' : 'none';
 
     if (fmt === 'numbers') {
       weatherEl.textContent = `${icon} ${tempRounded}°F`;
@@ -737,7 +824,7 @@
 
   async function fetchWeather(lat, lon) {
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min&hourly=precipitation_probability,precipitation&temperature_unit=fahrenheit&timezone=auto`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weathercode,precipitation_probability,precipitation&temperature_unit=fahrenheit&timezone=auto`;
       const response = await fetch(url);
       const data = await response.json();
       
@@ -750,6 +837,9 @@
           todayHigh = data.daily.temperature_2m_max[0];
           todayLow = data.daily.temperature_2m_min[0];
         }
+
+        // Timeline Bar
+        updateWeatherTimeline(data);
 
         // Rain Logic
         if (data.hourly) {
@@ -989,6 +1079,7 @@
     localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
     localStorage.zmanColorPreset = zmanColorPresetSelect.value;
     localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
     // zmanim enabled set already updated via checkboxes
     localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
     localStorage.setItem('alarms', JSON.stringify(alarms));
@@ -1015,6 +1106,7 @@
     showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
     zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme';
     zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
+    showWeatherTimelineSelect.value = localStorage.showWeatherTimeline || 'true';
     
     const storedAlarms = localStorage.getItem('alarms');
     if (storedAlarms) alarms = JSON.parse(storedAlarms);
@@ -1033,6 +1125,7 @@
     localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
     localStorage.zmanColorPreset = zmanColorPresetSelect.value;
     localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
     localStorage.layout = layoutSelect.value;
     localStorage.weatherFmt = weatherFmtSelect.value;
     localStorage.font = fontSelect.value;
@@ -1070,6 +1163,7 @@
     if (!localStorage.showNextZmanPrefix) localStorage.setItem('showNextZmanPrefix', 'true');
     if (!localStorage.zmanColorPreset) localStorage.setItem('zmanColorPreset', 'theme');
     if (!localStorage.zmanCustomColor) localStorage.setItem('zmanCustomColor', '#00e5ff');
+    if (!localStorage.showWeatherTimeline) localStorage.setItem('showWeatherTimeline', 'true');
     
     const storedAlarms = localStorage.getItem('alarms');
     if (storedAlarms) alarms = JSON.parse(storedAlarms);
@@ -1078,7 +1172,8 @@
     applyThemeAndStyle();
     updateTimeAndDate();
     setInterval(() => updateTimeAndDate(), 1000);
-    setInterval(() => { if (navigator.geolocation) navigator.geolocation.getCurrentPosition((pos) => fetchZmanim(pos.coords.latitude, pos.coords.longitude), () => fetchZmanim(40.7128, -74.0060)); }, 30*60000);
+    // Weather & Zmanim refresh every 10 minutes
+    setInterval(() => { if (navigator.geolocation) navigator.geolocation.getCurrentPosition((pos) => { fetchZmanim(pos.coords.latitude, pos.coords.longitude); fetchWeather(pos.coords.latitude, pos.coords.longitude); }, () => { fetchZmanim(40.7128, -74.0060); fetchWeather(40.7128, -74.0060); }); }, 10*60000);
     initGeolocationAndZmanim();
   }
 
@@ -1088,6 +1183,12 @@
   advBtn.addEventListener('click', toggleAdvanced);
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', (e) => {
+    // If alarm is active, clicking anywhere stops it
+    if (document.body.classList.contains('alarm-active')) {
+      stopAlarm();
+      return;
+    }
+
     const isModalOpen = modal.style.display === 'flex';
     const insidePanel = e.target.closest('.panel');
     const isGear = e.target.id === 'gear' || e.target.closest('#gear');
@@ -1104,6 +1205,7 @@
   fontSelect.addEventListener('change', livePreviewAdvanced);
   layoutSelect.addEventListener('change', livePreviewAdvanced);
   weatherFmtSelect.addEventListener('change', livePreviewAdvanced);
+  showWeatherTimelineSelect.addEventListener('change', livePreviewAdvanced);
   initializeApp();
 </script>
 </body>

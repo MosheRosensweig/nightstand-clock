@@ -79,37 +79,43 @@
     transition: all 0.3s ease;
   }
 
-  /* TIME LINE: container for time + seconds + AM/PM */
+  /* TIME LINE: container for time + vertical stack for AM/PM and Seconds */
   .time-line {
     display: flex;
-    align-items: baseline;
+    align-items: stretch; /* Forces the extras container to match main time height exactly */
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.1em;
-    row-gap: 0;
+    gap: 0.15em;
   }
   .main-hour-minute {
+    font-size: 1em;
     font-weight: inherit;
-    line-height: 1;
+    line-height: 0.8; /* Crops font padding to match optical top/bottom of digits */
+    display: block;
   }
-  .seconds-sm {
-    font-size: calc(var(--seconds-scale) * 1em);
-    opacity: 0.85;
-    transition: font-size 0.1s ease;
-    font-weight: 400;
-    margin-left: 0.15em;
+  .time-extras {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pins units to top and bottom */
+    font-size: 0.35em; 
+    text-align: left;
+    margin: 0;
+    padding: 0;
   }
   .ampm-indicator {
-    font-size: calc(var(--ampm-scale) * 1em);
     opacity: 0.7;
-    font-weight: 400;
-    margin-left: 0.25em;
-    letter-spacing: 0.5px;
-    transition: font-size 0.1s ease, opacity 0.2s;
+    font-weight: 500;
+    line-height: 0.7; /* Tight alignment to the top */
   }
-  .ampm-indicator.hide-ampm {
+  .seconds-sm {
+    opacity: 0.85;
+    font-weight: 400;
+    line-height: 0.7; /* Tight alignment to the bottom */
+  }
+  .time-extras.hide-extras {
     display: none;
   }
+
+  /* layout styles */
 
   /* weekday */
   .weekday {
@@ -122,27 +128,39 @@
   }
 
   /* layout styles */
-  .retro .main-hour-minute {
+  .retro .time-line {
     font-size: 18vw;
+  }
+  .retro .main-hour-minute {
     font-weight: 700;
     text-shadow: 0 0 8px currentColor;
   }
-  .simple .main-hour-minute {
+  .simple .time-line {
     font-size: 14vw;
+  }
+  .simple .main-hour-minute {
     font-weight: 400;
   }
-  .minimal .main-hour-minute {
+  .minimal .time-line {
     font-size: 12vw;
+  }
+  .minimal .main-hour-minute {
     font-weight: 300;
   }
-  .split .main-hour-minute {
+  .split .time-line {
     font-size: 13vw;
+  }
+  .split .main-hour-minute {
     font-weight: 500;
     background: linear-gradient(135deg, var(--fg) 30%, #aaffff);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
     text-shadow: none;
+  }
+  
+  .main-hour-minute {
+    font-size: 1em;
   }
 
   .date {
@@ -153,13 +171,31 @@
   }
   .weather {
     margin-top: 24px;
-    font-size: 2.6vw;
+    font-size: 2.2vw;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
-    display: inline-block;
-    padding: 8px 24px;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 28px;
     border-radius: 60px;
+    gap: 12px;
   }
+  .weather-stack {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.7em;
+    line-height: 1.1;
+    text-align: left;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 12px;
+    margin-left: 4px;
+  }
+  .weather-rain {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 12px;
+    margin-left: 4px;
+  }
+
   .next-zman {
     margin-top: 20px;
     font-size: 2.2vw;
@@ -172,6 +208,7 @@
     letter-spacing: 0.3px;
     border: 1px solid rgba(0, 229, 255, 0.3);
     transition: all 0.2s;
+    color: var(--zman-fg, var(--fg));
   }
 
   /* MODAL SCROLLABLE */
@@ -321,8 +358,11 @@
   <div class="weekday" id="weekday"></div>
   <div class="time-line">
     <span class="main-hour-minute" id="mainTime"></span>
-    <span class="seconds-sm" id="secondsSmall"></span>
-    <span class="ampm-indicator" id="ampmIndicator"></span>
+    <div class="time-extras">
+      <span class="ampm-indicator" id="ampmIndicator"></span>
+      <div class="time-spacer"></div>
+      <span class="seconds-sm" id="secondsSmall"></span>
+    </div>
   </div>
   <div class="date" id="date"></div>
   <div class="weather" id="weather">🌙 loading forecast...</div>
@@ -341,8 +381,6 @@
     <label>🌑 Background</label>
     <select id="bgPreset"><option value="#000000">Pure Black</option><option value="#222222">Dark Graphite</option><option value="#001133">Deep Navy</option><option value="custom">Custom Color</option></select>
     <input type="color" id="customBg" value="#000000">
-    <label>⏱️ Show seconds</label>
-    <select id="seconds"><option value="true">Yes — dynamic</option><option value="false">No — minimal</option></select>
 
     <button id="advBtn" type="button">⚡ Advanced Display & Zmanim</button>
     <div id="advanced">
@@ -350,23 +388,31 @@
       <label>📆 Weekday Text Size</label>
       <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
       
-      <label>⏲️ Seconds Size (relative to main time)</label>
-      <select id="secondsSize"><option value="0.2">Tiny (0.2x)</option><option value="0.35">Small (0.35x)</option><option value="0.5">Half size (0.5x) — default</option><option value="0.75">Large (0.75x)</option><option value="1.0">Same size as main (1x)</option></select>
-      
-      <label>🕒 Show AM/PM indicator</label>
-      <select id="showAmPm"><option value="false">Off (default)</option><option value="true">On</option></select>
+      <label>⏲️ Time Extras (Seconds & AM/PM)</label>
+      <select id="showTimeExtras"><option value="true">Show unit</option><option value="false">Hide unit</option></select>
 
       <hr />
       <label>🕯️ Zmanim Selection (Hebrew names)</label>
       <div id="zmanimChecklist" class="zmanim-grid"></div>
 
       <label>🌤️ Weather format</label>
-      <select id="weatherFmt"><option value="words">🌡️ 72°F · Clear sky</option><option value="numbers">🌤️ 72°F</option></select>
+      <select id="weatherFmt">
+        <option value="words">🌡️ 72°F · Clear sky</option>
+        <option value="numbers">🌤️ 72°F</option>
+        <option value="extended">📊 Extended (High/Low + Rain)</option>
+      </select>
       <label>📅 Date format</label>
       <select id="dateFmt"><option value="long">Monday, June 1, 2026</option><option value="medium">Mon, Jun 1</option><option value="numeric">6/1/2026</option></select>
       
       <label>⏳ Zman Display Type</label>
       <select id="zmanDisplayType"><option value="time">At time (10:30 PM)</option><option value="countdown">Countdown (in 2h 15m)</option></select>
+
+      <label>🏷️ Show "Next Zman:" prefix</label>
+      <select id="showNextZmanPrefix"><option value="true">Show</option><option value="false">Hide</option></select>
+
+      <label>🎨 Zman Text Color</label>
+      <select id="zmanColorPreset"><option value="theme">Same as theme</option><option value="custom">Custom Color</option></select>
+      <input type="color" id="zmanCustomColor" value="#00e5ff">
 
       <label>✍️ Clock font family</label>
       <select id="font"><option value="'Inter', 'SF Mono', monospace">Digital Mono</option><option value="'Segoe UI', 'Inter', sans-serif">Modern Sans</option><option value="'Cormorant Garamond', serif">Classic Serif</option></select>
@@ -381,18 +427,18 @@
 <script>
   // ---------- ZMANIM DATA: Hebrew names + API keys ----------
   const ZMANIM_DB = {
-    alotHaShachar: { he: "עלות השחר", default: true, display: "Alot Hashachar" },
-    sunrise: { he: "נץ החמה", default: true, display: "Netz" },
-    misheyakir: { he: "משיכיר", default: true, display: "Mi Sheyakir" },
-    sofZmanShma: { he: "סוף ק\"ש (גר\"א)", default: true, display: "Sof Zman Shma GRA" },
-    sofZmanTfilla: { he: "סוף תפילה (גר\"א)", default: true, display: "Sof Zman Tfila" },
-    chatzot: { he: "חצות", default: true, display: "Chatzot" },
-    minchaGedola: { he: "מנחה גדולה", default: true, display: "Mincha Gedola" },
-    sunset: { he: "שקיעה", default: true, display: "Shkiya" },
-    tzeit85deg: { he: "צאת הכוכבים", default: true, display: "Tzeit" },
-    plagHaMincha: { he: "פלג המנחה", default: false, display: "Plag HaMincha" },
-    candleLighting: { he: "הדלקת נרות", default: false, display: "Candle Lighting" },
-    sofZmanShmaMGA: { he: "סוף ק\"ש (מג\"א)", default: false, display: "Sof Zman Shma MGA" }
+    alotHaShachar: { he: "עלות השחר", icon: "🌄", default: true, display: "Alot Hashachar" },
+    sunrise: { he: "נץ החמה", icon: "🌅", default: true, display: "Netz" },
+    misheyakir: { he: "משיכיר", icon: "👕", default: true, display: "Mi Sheyakir" },
+    sofZmanShma: { he: "סוף ק\"ש (גר\"א)", icon: "📜", default: true, display: "Sof Zman Shma GRA" },
+    sofZmanTfilla: { he: "סוף תפילה (גר\"א)", icon: "🙏", default: true, display: "Sof Zman Tfila" },
+    chatzot: { he: "חצות", icon: "🕛", default: true, display: "Chatzot" },
+    minchaGedola: { he: "מנחה גדולה", icon: "☀️", default: true, display: "Mincha Gedola" },
+    sunset: { he: "שקיעה", icon: "🌇", default: true, display: "Shkiya" },
+    tzeit85deg: { he: "צאת הכוכבים", icon: "🌌", default: true, display: "Tzeit" },
+    plagHaMincha: { he: "פלג המנחה", icon: "🌤️", default: false, display: "Plag HaMincha" },
+    candleLighting: { he: "הדלקת נרות", icon: "🕯️", default: false, display: "Candle Lighting" },
+    sofZmanShmaMGA: { he: "סוף ק\"ש (מג\"א)", icon: "📜", default: false, display: "Sof Zman Shma MGA" }
   };
 
   let currentZmanimData = {};       // { key: Date object }
@@ -415,7 +461,6 @@
   const customColor = document.getElementById('customColor');
   const bgPreset = document.getElementById('bgPreset');
   const customBg = document.getElementById('customBg');
-  const secondsSelect = document.getElementById('seconds');
   const weatherFmtSelect = document.getElementById('weatherFmt');
   const dateFmtSelect = document.getElementById('dateFmt');
   const fontSelect = document.getElementById('font');
@@ -424,24 +469,16 @@
   const fullscreenBtn = document.getElementById('fullscreen');
   const saveBtn = document.getElementById('save');
   const weekdaySizeSelect = document.getElementById('weekdaySize');
-  const secondsSizeSelect = document.getElementById('secondsSize');
-  const showAmPmSelect = document.getElementById('showAmPm');
+  const showTimeExtrasSelect = document.getElementById('showTimeExtras');
   const zmanDisplayTypeSelect = document.getElementById('zmanDisplayType');
+  const showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix');
+  const zmanColorPresetSelect = document.getElementById('zmanColorPreset');
+  const zmanCustomColorInput = document.getElementById('zmanCustomColor');
 
   // Helper: load & apply advanced sizes + AM/PM dynamic scaling
   function applyAdvancedSizesAndAmpm() {
     let weekdayScale = parseFloat(localStorage.weekdaySize || "1.2");
-    let secondsScale = parseFloat(localStorage.secondsSize || "0.5");
     document.documentElement.style.setProperty('--weekday-scale', weekdayScale);
-    document.documentElement.style.setProperty('--seconds-scale', secondsScale);
-    
-    // Logic: AM/PM scale = if seconds visible AND secondsScale > 0.25 then use secondsScale, else base 0.25
-    const secondsVisible = (localStorage.seconds || 'true') === 'true';
-    let ampmScale = 0.25;
-    if (secondsVisible && secondsScale > 0.25) {
-      ampmScale = secondsScale;
-    }
-    document.documentElement.style.setProperty('--ampm-scale', ampmScale);
   }
 
   function applyThemeAndStyle() {
@@ -449,14 +486,21 @@
     let bgValue = (localStorage.bgPreset === 'custom') ? (localStorage.customBg || '#000000') : (localStorage.bgPreset || '#000000');
     document.documentElement.style.setProperty('--fg', fgValue);
     document.documentElement.style.setProperty('--bg', bgValue);
+    
+    // apply zman text color
+    let zmanFg = (localStorage.zmanColorPreset === 'custom') ? (localStorage.zmanCustomColor || '#00e5ff') : fgValue;
+    document.documentElement.style.setProperty('--zman-fg', zmanFg);
+
     const activeLayout = localStorage.layout || 'retro';
     clockContainer.className = activeLayout;
     const activeFont = localStorage.font || "'Inter', 'SF Mono', monospace";
     document.body.style.fontFamily = activeFont;
     applyAdvancedSizesAndAmpm();
-    const showAmPm = (localStorage.showAmPm === 'true');
-    if (showAmPm) ampmSpan.classList.remove('hide-ampm');
-    else ampmSpan.classList.add('hide-ampm');
+    
+    const showExtras = (localStorage.showTimeExtras !== 'false');
+    const extrasPanel = document.querySelector('.time-extras');
+    if (showExtras) extrasPanel.classList.remove('hide-extras');
+    else extrasPanel.classList.add('hide-extras');
   }
 
   // update time/date + trigger next zman refresh
@@ -471,16 +515,9 @@
     if (displayHours === 0) displayHours = 12;
     mainTimeSpan.textContent = `${displayHours}:${minutes.toString().padStart(2, '0')}`;
     const secondsVal = now.getSeconds().toString().padStart(2, '0');
-    if (showSecondsGlobal) {
-      secondsSmallSpan.textContent = `:${secondsVal}`;
-      secondsSmallSpan.style.display = 'inline';
-    } else {
-      secondsSmallSpan.style.display = 'none';
-    }
-    ampmSpan.textContent = ` ${ampm}`;
-    const showAmPmFlag = (localStorage.showAmPm === 'true');
-    if (showAmPmFlag) ampmSpan.classList.remove('hide-ampm');
-    else ampmSpan.classList.add('hide-ampm');
+    secondsSmallSpan.textContent = secondsVal;
+    ampmSpan.textContent = ampm;
+    
     weekdayEl.textContent = now.toLocaleDateString([], { weekday: 'long' }).toUpperCase();
     const dateFormat = localStorage.dateFmt || 'medium';
     let dateStr = '';
@@ -493,9 +530,11 @@
 
   // Weather (same as original but keep)
   let lastTemperature = null, lastWeatherCode = 0, weatherConditionText = "Clear";
+  let todayHigh = null, todayLow = null, rainInfo = "";
+
   function updateWeatherDisplay() {
     if (lastTemperature === null) { weatherEl.textContent = "⛅ waiting for weather..."; return; }
-    const fmt = localStorage.weatherFmt || 'words';
+    const fmt = localStorage.weatherFmt || 'extended';
     const tempRounded = Math.round(lastTemperature);
     let icon = "☀️";
     if (lastWeatherCode >= 61 && lastWeatherCode <= 65) icon = "🌧️";
@@ -503,17 +542,63 @@
     else if (lastWeatherCode >= 95) icon = "⛈️";
     else if (lastWeatherCode >= 3 && lastWeatherCode <= 4) icon = "☁️";
     else icon = "☀️";
-    if (fmt === 'numbers') weatherEl.textContent = `${icon} ${tempRounded}°F`;
-    else weatherEl.textContent = `${icon} ${tempRounded}°F · ${weatherConditionText}`;
+
+    if (fmt === 'numbers') {
+      weatherEl.textContent = `${icon} ${tempRounded}°F`;
+    } else if (fmt === 'words') {
+      weatherEl.textContent = `${icon} ${tempRounded}°F · ${weatherConditionText}`;
+    } else {
+      // Extended format: Icon -> Current -> Description -> Stacked High/Low -> Rain
+      const highLowHtml = `<div class="weather-stack"><span>High: ${Math.round(todayHigh)}°</span><span>Low: ${Math.round(todayLow)}°</span></div>`;
+      const rainHtml = `<div class="weather-rain">${rainInfo}</div>`;
+      weatherEl.innerHTML = `<span>${icon} ${tempRounded}°F</span> <span>${weatherConditionText}</span> ${highLowHtml} ${rainHtml}`;
+    }
   }
+
   async function fetchWeather(lat, lon) {
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=fahrenheit`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min&hourly=precipitation_probability,precipitation&temperature_unit=fahrenheit&timezone=auto`;
       const response = await fetch(url);
       const data = await response.json();
+      
       if (data.current) {
         lastTemperature = data.current.temperature_2m;
         lastWeatherCode = data.current.weathercode;
+        
+        // High/Low
+        if (data.daily) {
+          todayHigh = data.daily.temperature_2m_max[0];
+          todayLow = data.daily.temperature_2m_min[0];
+        }
+
+        // Rain Logic
+        if (data.hourly) {
+          const now = new Date();
+          const currentHour = now.getHours();
+          let rainStart = -1;
+          let rainEnd = -1;
+          let totalRainToday = false;
+
+          for (let i = currentHour; i < 24; i++) {
+            if (data.hourly.precipitation[i] > 0) {
+              totalRainToday = true;
+              if (rainStart === -1) rainStart = i;
+              rainEnd = i;
+            } else if (rainStart !== -1 && rainEnd !== -1) {
+              // Found a gap after rain
+              break;
+            }
+          }
+
+          if (totalRainToday && rainStart !== -1) {
+            const startStr = rainStart > 12 ? (rainStart - 12) + "pm" : (rainStart === 12 ? "12pm" : (rainStart === 0 ? "12am" : rainStart + "am"));
+            const duration = rainEnd - rainStart + 1;
+            rainInfo = `🌧️ Rain at ${startStr} (${duration}h)`;
+          } else {
+            rainInfo = "☀️ No rain today";
+          }
+        }
+
         const wCode = lastWeatherCode;
         if (wCode === 0) weatherConditionText = "Clear sky";
         else if (wCode === 1 || wCode === 2) weatherConditionText = "Mainly clear";
@@ -525,9 +610,14 @@
         else if (wCode >= 80 && wCode <= 82) weatherConditionText = "Rain showers";
         else if (wCode >= 95) weatherConditionText = "Thunderstorm";
         else weatherConditionText = "Mild";
+        
         updateWeatherDisplay();
       }
-    } catch(e) { weatherEl.textContent = "🌡️ offline · ambient mode"; lastTemperature = null; }
+    } catch(e) { 
+      console.error(e);
+      weatherEl.textContent = "🌡️ offline · ambient mode"; 
+      lastTemperature = null; 
+    }
   }
 
   // ZMANIM API: fetch from hebcal
@@ -594,16 +684,22 @@
     }
 
     if (upcomingKey && upcoming) {
-      const hebrewName = ZMANIM_DB[upcomingKey]?.he || upcomingKey;
+      const meta = ZMANIM_DB[upcomingKey] || { he: upcomingKey, icon: "🕯️" };
       const displayType = localStorage.zmanDisplayType || 'time';
+      const showPrefix = (localStorage.showNextZmanPrefix !== 'false');
       
+      let prefix = showPrefix ? "Next Zman: " : "";
+      let icon = meta.icon || "🕯️";
+      let text = "";
+
       if (displayType === 'countdown') {
         const diff = upcoming - now;
-        nextZmanEl.innerHTML = `🕯️ Next Zman: ${hebrewName} will be in ${formatCountdown(diff)}`;
+        text = `${prefix}${meta.he} will be in ${formatCountdown(diff)}`;
       } else {
         const timeStr = upcoming.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        nextZmanEl.innerHTML = `🕯️ Next Zman: ${hebrewName} will be at ${timeStr}`;
+        text = `${prefix}${meta.he} will be at ${timeStr}`;
       }
+      nextZmanEl.innerHTML = `${icon} ${text}`;
     } else {
       const firstZman = currentZmanimData[sortedKeys[0]];
       if (firstZman && firstZman.getDate() === now.getDate()) {
@@ -700,7 +796,6 @@
   // Save all
   function saveAndClose() {
     localStorage.layout = layoutSelect.value;
-    localStorage.seconds = secondsSelect.value;
     localStorage.weatherFmt = weatherFmtSelect.value;
     localStorage.dateFmt = dateFmtSelect.value;
     localStorage.font = fontSelect.value;
@@ -709,9 +804,11 @@
     localStorage.bgPreset = bgPreset.value;
     localStorage.customBg = customBg.value;
     localStorage.weekdaySize = weekdaySizeSelect.value;
-    localStorage.secondsSize = secondsSizeSelect.value;
-    localStorage.showAmPm = showAmPmSelect.value;
+    localStorage.showTimeExtras = showTimeExtrasSelect.value;
     localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
+    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
+    localStorage.zmanColorPreset = zmanColorPresetSelect.value;
+    localStorage.zmanCustomColor = zmanCustomColorInput.value;
     // zmanim enabled set already updated via checkboxes
     localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
     applyThemeAndStyle();
@@ -723,8 +820,8 @@
 
   function openModalWithCurrentSettings() {
     layoutSelect.value = localStorage.layout || 'retro';
-    secondsSelect.value = localStorage.seconds || 'true';
-    weatherFmtSelect.value = localStorage.weatherFmt || 'words';
+    weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
+
     dateFmtSelect.value = localStorage.dateFmt || 'medium';
     fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
     colorPreset.value = localStorage.colorPreset || '#00e5ff';
@@ -732,33 +829,31 @@
     bgPreset.value = localStorage.bgPreset || '#000000';
     customBg.value = localStorage.customBg || '#000000';
     weekdaySizeSelect.value = localStorage.weekdaySize || '1.2';
-    secondsSizeSelect.value = localStorage.secondsSize || '0.5';
-    showAmPmSelect.value = localStorage.showAmPm || 'false';
+    showTimeExtrasSelect.value = localStorage.showTimeExtras || 'true';
     zmanDisplayTypeSelect.value = localStorage.zmanDisplayType || 'time';
+    showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
+    zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme';
+    zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
     loadEnabledZmanimFromStorage(); // rebuilds checklist and syncs enabledZmanKeys
     modal.style.display = 'flex';
   }
 
   function livePreviewAdvanced() {
     if (modal.style.display !== 'flex') return;
-    let tempWeekScale = weekdaySizeSelect.value;
-    let tempSecScale = secondsSizeSelect.value;
-    let tempShowAmPm = showAmPmSelect.value;
-    document.documentElement.style.setProperty('--weekday-scale', parseFloat(tempWeekScale));
-    document.documentElement.style.setProperty('--seconds-scale', parseFloat(tempSecScale));
-    const secondsVisible = (secondsSelect.value === 'true');
-    let ampmScale = 0.25;
-    if (secondsVisible && parseFloat(tempSecScale) > 0.25) ampmScale = parseFloat(tempSecScale);
-    document.documentElement.style.setProperty('--ampm-scale', ampmScale);
-    if (tempShowAmPm === 'true') ampmSpan.classList.remove('hide-ampm');
-    else ampmSpan.classList.add('hide-ampm');
     
-    // update zman display type for preview
+    localStorage.weekdaySize = weekdaySizeSelect.value;
+    localStorage.showTimeExtras = showTimeExtrasSelect.value;
     localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
+    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
+    localStorage.zmanColorPreset = zmanColorPresetSelect.value;
+    localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.layout = layoutSelect.value;
+    localStorage.weatherFmt = weatherFmtSelect.value;
+    localStorage.font = fontSelect.value;
+    
+    applyThemeAndStyle();
     updateNextZmanDisplay();
-
-    document.body.style.fontFamily = fontSelect.value;
-    clockContainer.className = layoutSelect.value;
+    updateWeatherDisplay();
   }
 
   function toggleAdvanced() {
@@ -776,8 +871,7 @@
 
   function initializeApp() {
     if (!localStorage.layout) localStorage.setItem('layout', 'retro');
-    if (!localStorage.seconds) localStorage.setItem('seconds', 'true');
-    if (!localStorage.weatherFmt) localStorage.setItem('weatherFmt', 'words');
+    if (!localStorage.weatherFmt) localStorage.setItem('weatherFmt', 'extended');
     if (!localStorage.dateFmt) localStorage.setItem('dateFmt', 'medium');
     if (!localStorage.font) localStorage.setItem('font', "'Inter', 'SF Mono', monospace");
     if (!localStorage.colorPreset) localStorage.setItem('colorPreset', '#00e5ff');
@@ -785,9 +879,11 @@
     if (!localStorage.bgPreset) localStorage.setItem('bgPreset', '#000000');
     if (!localStorage.customBg) localStorage.setItem('customBg', '#000000');
     if (!localStorage.weekdaySize) localStorage.setItem('weekdaySize', '1.2');
-    if (!localStorage.secondsSize) localStorage.setItem('secondsSize', '0.5');
-    if (!localStorage.showAmPm) localStorage.setItem('showAmPm', 'false');
+    if (!localStorage.showTimeExtras) localStorage.setItem('showTimeExtras', 'true');
     if (!localStorage.zmanDisplayType) localStorage.setItem('zmanDisplayType', 'time');
+    if (!localStorage.showNextZmanPrefix) localStorage.setItem('showNextZmanPrefix', 'true');
+    if (!localStorage.zmanColorPreset) localStorage.setItem('zmanColorPreset', 'theme');
+    if (!localStorage.zmanCustomColor) localStorage.setItem('zmanCustomColor', '#00e5ff');
     loadEnabledZmanimFromStorage();
     applyThemeAndStyle();
     updateTimeAndDate();
@@ -810,12 +906,14 @@
     document.body.classList.toggle('hidden-ui');
   });
   weekdaySizeSelect.addEventListener('change', livePreviewAdvanced);
-  secondsSizeSelect.addEventListener('change', livePreviewAdvanced);
-  showAmPmSelect.addEventListener('change', livePreviewAdvanced);
+  showTimeExtrasSelect.addEventListener('change', livePreviewAdvanced);
   zmanDisplayTypeSelect.addEventListener('change', livePreviewAdvanced);
+  showNextZmanPrefixSelect.addEventListener('change', livePreviewAdvanced);
+  zmanColorPresetSelect.addEventListener('change', livePreviewAdvanced);
+  zmanCustomColorInput.addEventListener('input', livePreviewAdvanced);
   fontSelect.addEventListener('change', livePreviewAdvanced);
   layoutSelect.addEventListener('change', livePreviewAdvanced);
-  secondsSelect.addEventListener('change', livePreviewAdvanced);
+  weatherFmtSelect.addEventListener('change', livePreviewAdvanced);
   initializeApp();
 </script>
 </body>

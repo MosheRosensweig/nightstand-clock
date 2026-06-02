@@ -1,383 +1,572 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nightstand Weather Clock</title>
-    <style>
-        /* CSS Root Variables for easy theme changing */
-        :root {
-            --bg-color: #000000;
-            --text-color: #ff3b30; /* Default Nightstand Red */
-            --glow-strength: 10px;
-            --glow-color: rgba(255, 59, 48, 0.6);
-            --font-family: 'Courier New', Courier, monospace;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nightstand Weather Clock</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+:root {
+    --bg-color: #000000;
+    --text-color: #ff3b30;
+    --glow-strength: 10px;
+    --glow-color: rgba(255,59,48,0.6);
+    --font-family: 'Courier New', Courier, monospace;
+}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-family);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            transition: color 0.3s ease;
-        }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-        /* Main Display Layout */
-        .container {
-            text-align: center;
-            width: 100%;
-            padding: 20px;
-        }
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: color 0.3s ease;
+}
 
-        .time-display {
-            font-size: 15vw; /* Fluid typography scales perfectly on all screens */
-            font-weight: bold;
-            line-height: 1;
-            text-shadow: 0 0 var(--glow-strength) var(--glow-color);
-        }
+.container {
+    text-align: center;
+    width: 100%;
+    padding: 20px;
+}
 
-        .date-display {
-            font-size: 4vw;
-            margin-top: 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+.time-display {
+    font-size: 15vw;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 0 var(--glow-strength) var(--glow-color);
+}
 
-        .weather-display {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 30px;
-            font-size: 5vw;
-        }
+.date-display {
+    font-size: 4vw;
+    margin-top: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
 
-        .weather-icon {
-            font-size: 7vw;
-        }
+.weather-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    font-size: 5vw;
+}
 
-        /* Settings Gear Icon */
-        .settings-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: var(--text-color);
-            font-size: 24px;
-            cursor: pointer;
-            opacity: 0.3;
-            transition: opacity 0.3s;
-        }
+.weather-icon {
+    font-size: 7vw;
+}
 
-        .settings-btn:hover {
-            opacity: 1;
-        }
+.settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 28px;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.3s;
+    z-index: 20;
+}
 
-        /* Settings Modal Overlay */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
+.settings-btn:hover {
+    opacity: 1;
+}
 
-        .modal-content {
-            background-color: #1a1a1a;
-            border: 1px solid #333;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            color: #fff;
-            font-family: sans-serif;
-        }
+.controls-hidden .settings-btn {
+    opacity: 0;
+    pointer-events: none;
+}
 
-        .modal-title {
-            margin-bottom: 20px;
-            font-size: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
 
-        .setting-group {
-            margin-bottom: 15px;
-        }
+.modal-content {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 420px;
+    color: white;
+    font-family: sans-serif;
+}
 
-        .setting-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #aaa;
-        }
+.modal-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+}
 
-        .setting-group select {
-            width: 100%;
-            padding: 10px;
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 6px;
-            font-size: 16px;
-        }
+.setting-group {
+    margin-bottom: 16px;
+}
 
-        .close-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #333;
-            border: none;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 16px;
-        }
+.setting-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #aaa;
+}
 
-        .close-btn:hover {
-            background-color: #444;
-        }
+.setting-group select {
+    width: 100%;
+    padding: 10px;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 6px;
+    font-size: 16px;
+}
 
-        /* Media Queries for fine tuning smaller or larger viewports */
-        @media (min-width: 1024px) {
-            .time-display { font-size: 12rem; }
-            .date-display { font-size: 2.5rem; }
-            .weather-display { font-size: 3rem; }
-            .weather-icon { font-size: 4rem; }
-        }
-        @media (max-width: 480px) {
-            .time-display { font-size: 18vw; }
-            .date-display { font-size: 5vw; }
-            .weather-display { font-size: 6vw; flex-direction: column; gap: 5px; }
-            .weather-icon { font-size: 12vw; }
-        }
-    </style>
+.close-btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.close-btn:hover {
+    background: #444;
+}
+
+@media (min-width:1024px) {
+    .time-display { font-size: 12rem; }
+    .date-display { font-size: 2.5rem; }
+    .weather-display { font-size: 3rem; }
+}
+
+@media (max-width:480px) {
+    .time-display { font-size: 18vw; }
+    .date-display { font-size: 5vw; }
+    .weather-display {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <button class="settings-btn" id="openSettings">⚙️</button>
+<button class="settings-btn" id="openSettings">⚙️</button>
 
-    <div class="container">
-        <div class="time-display" id="time">00:00:00</div>
-        <div class="date-display" id="date">Loading Date...</div>
-        <div class="weather-display" id="weather">
-            <span class="weather-icon" id="wxIcon">⏳</span>
-            <span id="wxTemp">--°F</span>
-            <span id="wxDesc">Fetching Weather...</span>
-        </div>
+<div class="container">
+    <div class="time-display" id="time">00:00:00</div>
+    <div class="date-display" id="date">Loading...</div>
+
+    <div class="weather-display">
+        <span class="weather-icon" id="wxIcon">⏳</span>
+        <span id="wxTemp">--°F</span>
+        <span id="wxDesc">Loading Weather...</span>
     </div>
+</div>
 
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-title">Clock Preferences</div>
-            
-            <div class="setting-group">
-                <label for="colorSelect">Text Glow Color</label>
-                <select id="colorSelect">
-                    <option value="#ff3b30">Nightstand Red</option>
-                    <option value="#ff9500">Amber Amber</option>
-                    <option value="#34c759">Emerald Green</option>
-                    <option value="#007aff">Neon Blue</option>
-                    <option value="#af52de">Soft Purple</option>
-                </select>
-            </div>
+<div class="modal" id="settingsModal">
+    <div class="modal-content">
 
-            <div class="setting-group">
-                <label for="fontSelect">Font Style</label>
-                <select id="fontSelect">
-                    <option value="'Courier New', Courier, monospace">Digital Terminal</option>
-                    <option value="sans-serif">Modern Minimalist</option>
-                    <option value="serif">Classic Editorial</option>
-                </select>
-            </div>
-
-            <div class="setting-group">
-                <label for="glowSelect">Glow Intensity</label>
-                <select id="glowSelect">
-                    <option value="5px">Subtle Dim</option>
-                    <option value="15px">Medium Glow</option>
-                    <option value="30px">Intense Radiant</option>
-                    <option value="0px">No Glow</option>
-                </select>
-            </div>
-
-            <button class="close-btn" id="closeSettings">Save & Close</button>
+        <div class="modal-title">
+            Clock Preferences
         </div>
+
+        <div class="setting-group">
+            <label>Text Glow Color</label>
+            <select id="colorSelect">
+                <option value="#ff3b30">Nightstand Red</option>
+                <option value="#ff9500">Amber</option>
+                <option value="#34c759">Green</option>
+                <option value="#007aff">Blue</option>
+                <option value="#af52de">Purple</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>Font Style</label>
+            <select id="fontSelect">
+                <option value="'Courier New', Courier, monospace">
+                    Digital Terminal
+                </option>
+                <option value="sans-serif">
+                    Modern Minimalist
+                </option>
+                <option value="serif">
+                    Classic
+                </option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label>Glow Intensity</label>
+            <select id="glowSelect">
+                <option value="5px">Subtle</option>
+                <option value="15px">Medium</option>
+                <option value="30px">Strong</option>
+                <option value="0px">None</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <button class="close-btn" id="fullscreenBtn">
+                Enter Fullscreen
+            </button>
+        </div>
+
+        <button class="close-btn" id="closeSettings">
+            Save & Close
+        </button>
+
     </div>
+</div>
 
-    <script>
-        // Core functional elements
-        const timeEl = document.getElementById('time');
-        const dateEl = document.getElementById('date');
-        const wxIconEl = document.getElementById('wxIcon');
-        const wxTempEl = document.getElementById('wxTemp');
-        const wxDescEl = document.getElementById('wxDesc');
+<script>
 
-        // Modal elements
-        const modal = document.getElementById('settingsModal');
-        const openBtn = document.getElementById('openSettings');
-        const closeBtn = document.getElementById('closeSettings');
+const timeEl = document.getElementById('time');
+const dateEl = document.getElementById('date');
 
-        // Setting inputs
-        const colorSelect = document.getElementById('colorSelect');
-        const fontSelect = document.getElementById('fontSelect');
-        const glowSelect = document.getElementById('glowSelect');
+const wxIconEl = document.getElementById('wxIcon');
+const wxTempEl = document.getElementById('wxTemp');
+const wxDescEl = document.getElementById('wxDesc');
 
-        // 1. Live Clock Engine
-        function tick() {
-            const now = new Date();
-            
-            // Format time options
-            timeEl.innerText = now.toLocaleTimeString([], { hour12: true });
-            
-            // Format date options
-            const options = { weekday: 'short', month: 'short', day: 'numeric' };
-            dateEl.innerText = now.toLocaleDateString('en-US', options);
-        }
-        setInterval(tick, 1000);
-        tick();
+const modal = document.getElementById('settingsModal');
+const openBtn = document.getElementById('openSettings');
+const closeBtn = document.getElementById('closeSettings');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-        // 2. Open-Meteo Weather Mapping
-        // Maps WMO Weather Interpretation Codes to friendly emojis and text descriptions
-        function interpretWeather(code) {
-            const map = {
-                0: { icon: "☀️", desc: "Clear Sky" },
-                1: { icon: "🌤️", desc: "Mainly Clear" },
-                2: { icon: "⛅", desc: "Partly Cloudy" },
-                3: { icon: "☁️", desc: "Overcast" },
-                45: { icon: "🌫️", desc: "Foggy" },
-                48: { icon: "🌫️", desc: "Depositing Rime Fog" },
-                51: { icon: "🌧️", desc: "Light Drizzle" },
-                53: { icon: "🌧️", desc: "Moderate Drizzle" },
-                55: { icon: "🌧️", desc: "Dense Drizzle" },
-                61: { icon: "🌧️", desc: "Slight Rain" },
-                63: { icon: "🌧️", desc: "Moderate Rain" },
-                65: { icon: "🌧️", desc: "Heavy Rain" },
-                71: { icon: "🌨️", desc: "Slight Snowfall" },
-                73: { icon: "🌨️", desc: "Moderate Snowfall" },
-                75: { icon: "🌨️", desc: "Heavy Snowfall" },
-                80: { icon: "🌦️", desc: "Slight Rain Showers" },
-                81: { icon: "🌦️", desc: "Moderate Rain Showers" },
-                82: { icon: "⛈️", desc: "Violent Rain Showers" },
-                95: { icon: "⛈️", desc: "Thunderstorm" }
-            };
-            return map[code] || { icon: "🌡️", desc: "Weather Updated" };
-        }
+const colorSelect = document.getElementById('colorSelect');
+const fontSelect = document.getElementById('fontSelect');
+const glowSelect = document.getElementById('glowSelect');
 
-        async function fetchWeather() {
-            // Default coordinates point to New York City area if geo-location is denied
-            let lat = 40.7128;
-            let lon = -74.0060;
+let controlsVisible = true;
 
-            const fetchUrl = (latitude, longitude) => 
-                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`;
+function tick() {
+    const now = new Date();
 
-            async function runFetch(latitude, longitude) {
-                try {
-                    const response = await fetch(fetchUrl(latitude, longitude));
-                    const data = await response.json();
-                    const currentWx = data.current;
-                    const parsedData = interpretWeather(currentWx.weather_code);
+    timeEl.textContent =
+        now.toLocaleTimeString([], {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
-                    wxTempEl.innerText = `${Math.round(currentWx.temperature_2m)}°F`;
-                    wxIconEl.innerText = parsedData.icon;
-                    wxDescEl.innerText = parsedData.desc;
-                } catch (error) {
-                    wxDescEl.innerText = "Error Loading Weather";
-                    console.error("Weather update failed:", error);
-                }
-            }
+    dateEl.textContent =
+        now.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+}
 
-            // Request permission to grab dynamic local weather details automatically
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        runFetch(position.coords.latitude, position.coords.longitude);
-                    },
-                    () => {
-                        // Geolocation denied or unavailable; use default NYC location fallback
-                        runFetch(lat, lon);
-                    }
+setInterval(tick, 1000);
+tick();
+
+function interpretWeather(code) {
+    const map = {
+        0:{icon:"☀️",desc:"Clear"},
+        1:{icon:"🌤️",desc:"Mostly Clear"},
+        2:{icon:"⛅",desc:"Partly Cloudy"},
+        3:{icon:"☁️",desc:"Cloudy"},
+        45:{icon:"🌫️",desc:"Fog"},
+        61:{icon:"🌧️",desc:"Rain"},
+        71:{icon:"🌨️",desc:"Snow"},
+        80:{icon:"🌦️",desc:"Showers"},
+        95:{icon:"⛈️",desc:"Thunderstorm"}
+    };
+
+    return map[code] || {
+        icon:"🌡️",
+        desc:"Weather"
+    };
+}
+
+async function fetchWeather() {
+
+    async function loadWeather(lat, lon) {
+
+        try {
+
+            const response = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`
+            );
+
+            const data = await response.json();
+
+            const weather =
+                interpretWeather(
+                    data.current.weather_code
                 );
-            } else {
-                runFetch(lat, lon);
-            }
+
+            wxTempEl.textContent =
+                Math.round(data.current.temperature_2m) + "°F";
+
+            wxIconEl.textContent = weather.icon;
+            wxDescEl.textContent = weather.desc;
+
+        } catch(err) {
+            wxDescEl.textContent =
+                "Weather Unavailable";
         }
-        
-        // Refresh weather stats every 15 minutes to preserve data metrics safely
-        fetchWeather();
-        setInterval(fetchWeather, 15 * 60 * 1000);
+    }
 
-        // 3. Setup Persistent Preferences Integration
-        function applySettings(color, font, glow) {
-            document.documentElement.style.setProperty('--text-color', color);
-            document.documentElement.style.setProperty('--font-family', font);
-            document.documentElement.style.setProperty('--glow-strength', glow);
-            document.documentElement.style.setProperty('--glow-color', hexToRgbA(color, 0.6));
-            
-            // Adjust current interface button components
-            openBtn.style.color = color;
+    if (navigator.geolocation) {
 
-            // Cache choices internally
-            localStorage.setItem('ns-color', color);
-            localStorage.setItem('ns-font', font);
-            localStorage.setItem('ns-glow', glow);
+        navigator.geolocation.getCurrentPosition(
+            pos => loadWeather(
+                pos.coords.latitude,
+                pos.coords.longitude
+            ),
+            () => loadWeather(40.7128,-74.0060)
+        );
+
+    } else {
+        loadWeather(40.7128,-74.0060);
+    }
+}
+
+fetchWeather();
+setInterval(fetchWeather, 15 * 60 * 1000);
+
+function hexToRgbA(hex, alpha) {
+
+    let c;
+
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+
+        c = hex.substring(1).split('');
+
+        if(c.length === 3) {
+            c = [
+                c[0],c[0],
+                c[1],c[1],
+                c[2],c[2]
+            ];
         }
 
-        // Helper function to turn solid hex colors into transparent glow objects
-        function hexToRgbA(hex, alpha){
-            let c;
-            if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-                c= hex.substring(1).split('');
-                if(c.length== 3){
-                    c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-                }
-                c= '0x' + c.join('');
-                return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
-            }
-            return hex;
+        c = '0x' + c.join('');
+
+        return `rgba(${
+            (c>>16)&255
+        },${
+            (c>>8)&255
+        },${
+            c&255
+        },${alpha})`;
+    }
+
+    return hex;
+}
+
+function applySettings(color,font,glow) {
+
+    document.documentElement
+        .style.setProperty(
+            '--text-color',
+            color
+        );
+
+    document.documentElement
+        .style.setProperty(
+            '--font-family',
+            font
+        );
+
+    document.documentElement
+        .style.setProperty(
+            '--glow-strength',
+            glow
+        );
+
+    document.documentElement
+        .style.setProperty(
+            '--glow-color',
+            hexToRgbA(color,0.6)
+        );
+
+    openBtn.style.color = color;
+
+    localStorage.setItem(
+        'ns-color',
+        color
+    );
+
+    localStorage.setItem(
+        'ns-font',
+        font
+    );
+
+    localStorage.setItem(
+        'ns-glow',
+        glow
+    );
+}
+
+async function toggleFullscreen() {
+
+    try {
+
+        if (!document.fullscreenElement) {
+
+            await document.documentElement
+                .requestFullscreen();
+
+            localStorage.setItem(
+                'ns-fullscreen',
+                'true'
+            );
+
+        } else {
+
+            await document.exitFullscreen();
+
+            localStorage.setItem(
+                'ns-fullscreen',
+                'false'
+            );
         }
 
-        // Handle settings save action
-        function savePreferences() {
-            applySettings(colorSelect.value, fontSelect.value, glowSelect.value);
-        }
+        updateFullscreenButton();
 
-        // UI Modal Event Handlers
-        openBtn.addEventListener('click', () => { modal.style.display = 'flex'; });
-        closeBtn.addEventListener('click', () => { 
-            savePreferences();
-            modal.style.display = 'none'; 
-        });
+    } catch(err) {
+        console.error(err);
+    }
+}
 
-        // Initialize user data defaults from cache storage structures
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedColor = localStorage.getItem('ns-color') || '#ff3b30';
-            const savedFont = localStorage.getItem('ns-font') || "'Courier New', Courier, monospace";
-            const savedGlow = localStorage.getItem('ns-glow') || '10px';
+function updateFullscreenButton() {
 
-            colorSelect.value = savedColor;
-            fontSelect.value = savedFont;
-            glowSelect.value = savedGlow;
+    fullscreenBtn.textContent =
+        document.fullscreenElement
+            ? "Exit Fullscreen"
+            : "Enter Fullscreen";
+}
 
-            applySettings(savedColor, savedFont, savedGlow);
-        });
-    </script>
+function toggleControls() {
+
+    controlsVisible = !controlsVisible;
+
+    if (controlsVisible) {
+
+        document.body.classList
+            .remove('controls-hidden');
+
+    } else {
+
+        document.body.classList
+            .add('controls-hidden');
+    }
+}
+
+openBtn.addEventListener(
+    'click',
+    () => modal.style.display = 'flex'
+);
+
+closeBtn.addEventListener(
+    'click',
+    () => {
+
+        applySettings(
+            colorSelect.value,
+            fontSelect.value,
+            glowSelect.value
+        );
+
+        modal.style.display = 'none';
+    }
+);
+
+fullscreenBtn.addEventListener(
+    'click',
+    toggleFullscreen
+);
+
+document.addEventListener(
+    'fullscreenchange',
+    updateFullscreenButton
+);
+
+document.body.addEventListener(
+    'click',
+    (e) => {
+
+        if (
+            e.target.closest('.settings-btn')
+        ) return;
+
+        if (
+            e.target.closest('.modal-content')
+        ) return;
+
+        if (
+            modal.style.display === 'flex'
+        ) return;
+
+        toggleControls();
+    }
+);
+
+window.addEventListener(
+    'DOMContentLoaded',
+    () => {
+
+        const savedColor =
+            localStorage.getItem(
+                'ns-color'
+            ) || '#ff3b30';
+
+        const savedFont =
+            localStorage.getItem(
+                'ns-font'
+            ) ||
+            "'Courier New', Courier, monospace";
+
+        const savedGlow =
+            localStorage.getItem(
+                'ns-glow'
+            ) || '10px';
+
+        colorSelect.value =
+            savedColor;
+
+        fontSelect.value =
+            savedFont;
+
+        glowSelect.value =
+            savedGlow;
+
+        applySettings(
+            savedColor,
+            savedFont,
+            savedGlow
+        );
+
+        updateFullscreenButton();
+    }
+);
+
+</script>
+
 </body>
 </html>
+```

@@ -31,12 +31,14 @@
     background: var(--bg);
     color: var(--fg);
     font-family: 'Inter', 'SF Mono', 'Fira Code', monospace;
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     transition: background 0.25s ease, color 0.2s ease;
+    padding: 20px 0;
   }
 
   /* gear icon */
@@ -74,9 +76,11 @@
   /* main clock container */
   #clock {
     text-align: center;
-    width: 90%;
+    width: 95%;
     max-width: 1200px;
     transition: all 0.3s ease;
+    padding-bottom: 40px;
+    margin: auto;
   }
 
   /* TIME LINE */
@@ -317,11 +321,13 @@
   .weather-timeline {
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     display: none;
     padding: 15px 0;
     margin-top: 20px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
     color: var(--weather-fg, var(--fg));
@@ -347,8 +353,19 @@
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
   @media (max-width: 640px) {
-    .date, .weather, .next-zman { font-size: 5vw; }
-    .weekday { font-size: calc(4vw * var(--weekday-scale)); }
+    .date { font-size: 6vw; }
+    .weather { font-size: 4.5vw; padding: 8px 20px; }
+    .next-zman { font-size: 4.5vw; padding: 8px 20px; }
+    .weekday { font-size: calc(6vw * var(--weekday-scale)); }
+    .retro .time-line { font-size: 24vw; }
+    .simple .time-line { font-size: 20vw; }
+    .minimal .time-line { font-size: 16vw; }
+    .split .time-line { font-size: 18vw; }
+    .weather-stack { padding-left: 8px; }
+  }
+  @media (max-height: 500px) {
+    #clock { transform: scale(0.85); }
+    body { padding: 10px 0; }
   }
 </style>
 </head>

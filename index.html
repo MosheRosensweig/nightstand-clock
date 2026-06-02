@@ -692,11 +692,19 @@
   }
 
   async function toggleFullscreen() {
-    try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch(e) {}
+    const doc = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (doc.requestFullscreen) doc.requestFullscreen();
+      else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitFullscreen();
+    }
   }
 
   gearBtn.addEventListener('click', openModalWithCurrentSettings);
   saveBtn.addEventListener('click', saveAndClose);
+  document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
   fullscreenBtn.addEventListener('click', toggleFullscreen);
   advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });

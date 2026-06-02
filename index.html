@@ -678,8 +678,13 @@
     setInterval(initGeolocationAndZmanim, 10*60000); initGeolocationAndZmanim();
   }
 
+  async function toggleFullscreen() {
+    try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch(e) {}
+  }
+
   gearBtn.addEventListener('click', openModalWithCurrentSettings);
   saveBtn.addEventListener('click', saveAndClose);
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
   advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });

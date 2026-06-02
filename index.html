@@ -340,10 +340,85 @@
     display: none;
     animation: fadeSlide 0.2s;
   }
-  @keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+  /* TABS */
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.3);
+    padding-bottom: 10px;
   }
+  .tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: var(--transition-smooth);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #bbd4ff;
+  }
+  .tab.active {
+    background: rgba(0, 229, 255, 0.2);
+    color: var(--fg);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+  }
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .tab-content.active {
+    display: block;
+  }
+
+  /* ALARMS */
+  .alarm-item {
+    background: rgba(20, 25, 40, 0.5);
+    border-radius: 20px;
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid rgba(0, 229, 255, 0.1);
+  }
+  .alarm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .alarm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .alarm-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .alarm-input-group input {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 10px;
+    color: white;
+  }
+  .remove-alarm {
+    color: #ff3b30;
+    cursor: pointer;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* FLASHING BACKGROUND */
+  @keyframes alarmFlash {
+    0%, 49% { background: #000000; color: #ffffff; }
+    50%, 100% { background: #ffffff; color: #000000; }
+  }
+  .alarm-active {
+    animation: alarmFlash var(--flash-speed, 0.5s) infinite;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @media (max-width: 640px) {
     .date, .weather, .next-zman { font-size: 5vw; }
     .weekday { font-size: calc(4vw * var(--weekday-scale)); }
@@ -384,38 +459,48 @@
 
     <button id="advBtn" type="button">⚡ Advanced Display & Zmanim</button>
     <div id="advanced">
-      <hr />
-      <label>📆 Weekday Text Size</label>
-      <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
-      
-      <label>⏲️ Time Extras (Seconds & AM/PM)</label>
-      <select id="showTimeExtras"><option value="true">Show unit</option><option value="false">Hide unit</option></select>
+      <div class="tabs">
+        <div class="tab active" data-tab="tab-zmanim">🕯️ Zmanim</div>
+        <div class="tab" data-tab="tab-alarms">⏰ Alarms</div>
+        <div class="tab" data-tab="tab-display">🖥️ Display</div>
+      </div>
 
-      <hr />
-      <label>🕯️ Zmanim Selection (Hebrew names)</label>
-      <div id="zmanimChecklist" class="zmanim-grid"></div>
+      <!-- Zmanim Tab -->
+      <div id="tab-zmanim" class="tab-content active">
+        <label>🕯️ Zmanim Selection (Hebrew names)</label>
+        <div id="zmanimChecklist" class="zmanim-grid"></div>
+        <label>⏳ Zman Display Type</label>
+        <select id="zmanDisplayType"><option value="time">At time (10:30 PM)</option><option value="countdown">Countdown (in 2h 15m)</option></select>
+        <label>🏷️ Show "Next Zman:" prefix</label>
+        <select id="showNextZmanPrefix"><option value="true">Show</option><option value="false">Hide</option></select>
+        <label>🎨 Zman Text Color</label>
+        <select id="zmanColorPreset"><option value="theme">Same as theme</option><option value="custom">Custom Color</option></select>
+        <input type="color" id="zmanCustomColor" value="#00e5ff">
+      </div>
 
-      <label>🌤️ Weather format</label>
-      <select id="weatherFmt">
-        <option value="words">🌡️ 72°F · Clear sky</option>
-        <option value="numbers">🌤️ 72°F</option>
-        <option value="extended">📊 Extended (High/Low + Rain)</option>
-      </select>
-      <label>📅 Date format</label>
-      <select id="dateFmt"><option value="long">Monday, June 1, 2026</option><option value="medium">Mon, Jun 1</option><option value="numeric">6/1/2026</option></select>
-      
-      <label>⏳ Zman Display Type</label>
-      <select id="zmanDisplayType"><option value="time">At time (10:30 PM)</option><option value="countdown">Countdown (in 2h 15m)</option></select>
+      <!-- Alarms Tab -->
+      <div id="tab-alarms" class="tab-content">
+        <div id="alarmList"></div>
+        <button id="addAlarm" style="margin-top: 15px; background: rgba(0, 229, 255, 0.2);">➕ Add Alarm (max 10)</button>
+      </div>
 
-      <label>🏷️ Show "Next Zman:" prefix</label>
-      <select id="showNextZmanPrefix"><option value="true">Show</option><option value="false">Hide</option></select>
-
-      <label>🎨 Zman Text Color</label>
-      <select id="zmanColorPreset"><option value="theme">Same as theme</option><option value="custom">Custom Color</option></select>
-      <input type="color" id="zmanCustomColor" value="#00e5ff">
-
-      <label>✍️ Clock font family</label>
-      <select id="font"><option value="'Inter', 'SF Mono', monospace">Digital Mono</option><option value="'Segoe UI', 'Inter', sans-serif">Modern Sans</option><option value="'Cormorant Garamond', serif">Classic Serif</option></select>
+      <!-- Display Tab -->
+      <div id="tab-display" class="tab-content">
+        <label>📆 Weekday Text Size</label>
+        <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
+        <label>⏲️ Time Extras (Seconds & AM/PM)</label>
+        <select id="showTimeExtras"><option value="true">Show unit</option><option value="false">Hide unit</option></select>
+        <label>🌤️ Weather format</label>
+        <select id="weatherFmt">
+          <option value="words">🌡️ 72°F · Clear sky</option>
+          <option value="numbers">🌤️ 72°F</option>
+          <option value="extended">📊 Extended (High/Low + Rain)</option>
+        </select>
+        <label>📅 Date format</label>
+        <select id="dateFmt"><option value="long">Monday, June 1, 2026</option><option value="medium">Mon, Jun 1</option><option value="numeric">6/1/2026</option></select>
+        <label>✍️ Clock font family</label>
+        <select id="font"><option value="'Inter', 'SF Mono', monospace">Digital Mono</option><option value="'Segoe UI', 'Inter', sans-serif">Modern Sans</option><option value="'Cormorant Garamond', serif">Classic Serif</option></select>
+      </div>
     </div>
     <div class="button-group">
       <button id="fullscreen">🖥️ Fullscreen</button>
@@ -443,6 +528,8 @@
 
   let currentZmanimData = {};       // { key: Date object }
   let enabledZmanKeys = new Set();   // keys enabled by user
+  let alarms = [];                   // { time: "HH:mm", enabled: bool, flashSpeed: sec, duration: sec }
+  let activeAlarmTimeout = null;
   let nextZmanTimeout = null;
 
   // DOM elements
@@ -474,6 +561,98 @@
   const showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix');
   const zmanColorPresetSelect = document.getElementById('zmanColorPreset');
   const zmanCustomColorInput = document.getElementById('zmanCustomColor');
+
+  // Tabs Logic
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Alarm Logic
+  function createAlarmUI() {
+    const list = document.getElementById('alarmList');
+    list.innerHTML = '';
+    alarms.forEach((alarm, index) => {
+      const item = document.createElement('div');
+      item.className = 'alarm-item';
+      item.innerHTML = `
+        <div class="alarm-header">
+          <strong>Alarm #${index + 1}</strong>
+          <span class="remove-alarm" onclick="removeAlarm(${index})">🗑️ Remove</span>
+        </div>
+        <div class="alarm-grid">
+          <div class="alarm-input-group">
+            <label>Time</label>
+            <input type="time" value="${alarm.time}" onchange="updateAlarm(${index}, 'time', this.value)">
+          </div>
+          <div class="alarm-input-group">
+            <label>Enabled</label>
+            <select onchange="updateAlarm(${index}, 'enabled', this.value === 'true')">
+              <option value="true" ${alarm.enabled ? 'selected' : ''}>ON</option>
+              <option value="false" ${!alarm.enabled ? 'selected' : ''}>OFF</option>
+            </select>
+          </div>
+          <div class="alarm-input-group">
+            <label>Flash Speed (sec)</label>
+            <input type="number" step="0.1" min="0.1" value="${alarm.flashSpeed}" onchange="updateAlarm(${index}, 'flashSpeed', this.value)">
+          </div>
+          <div class="alarm-input-group">
+            <label>Duration (sec)</label>
+            <input type="number" min="1" value="${alarm.duration}" onchange="updateAlarm(${index}, 'duration', this.value)">
+          </div>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  window.addAlarm = () => {
+    if (alarms.length >= 10) return;
+    alarms.push({ time: "08:00", enabled: true, flashSpeed: 0.5, duration: 30 });
+    createAlarmUI();
+  };
+
+  window.removeAlarm = (index) => {
+    alarms.splice(index, 1);
+    createAlarmUI();
+  };
+
+  window.updateAlarm = (index, field, value) => {
+    alarms[index][field] = value;
+  };
+
+  function checkAlarms() {
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const seconds = now.getSeconds();
+    
+    // Only trigger at the start of the minute
+    if (seconds !== 0) return;
+
+    alarms.forEach(alarm => {
+      if (alarm.enabled && alarm.time === timeStr) {
+        triggerAlarm(alarm);
+      }
+    });
+  }
+
+  function triggerAlarm(alarm) {
+    if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout);
+    
+    document.body.style.setProperty('--flash-speed', `${alarm.flashSpeed}s`);
+    document.body.classList.add('alarm-active');
+    
+    activeAlarmTimeout = setTimeout(() => {
+      document.body.classList.remove('alarm-active');
+      activeAlarmTimeout = null;
+    }, alarm.duration * 1000);
+  }
+
+  document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
 
   // Helper: load & apply advanced sizes + AM/PM dynamic scaling
   function applyAdvancedSizesAndAmpm() {
@@ -507,6 +686,7 @@
   function updateTimeAndDate() {
     const now = new Date();
     checkDailyRefresh(); // ensure we refresh on day change
+    checkAlarms();       // check if any alarms should trigger
     const showSecondsGlobal = (localStorage.seconds || 'true') === 'true';
     let hours = now.getHours();
     const minutes = now.getMinutes();
@@ -811,6 +991,7 @@
     localStorage.zmanCustomColor = zmanCustomColorInput.value;
     // zmanim enabled set already updated via checkboxes
     localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
+    localStorage.setItem('alarms', JSON.stringify(alarms));
     applyThemeAndStyle();
     updateTimeAndDate();
     if (lastTemperature !== null) updateWeatherDisplay();
@@ -834,6 +1015,11 @@
     showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
     zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme';
     zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
+    
+    const storedAlarms = localStorage.getItem('alarms');
+    if (storedAlarms) alarms = JSON.parse(storedAlarms);
+    createAlarmUI();
+
     loadEnabledZmanimFromStorage(); // rebuilds checklist and syncs enabledZmanKeys
     modal.style.display = 'flex';
   }
@@ -884,6 +1070,10 @@
     if (!localStorage.showNextZmanPrefix) localStorage.setItem('showNextZmanPrefix', 'true');
     if (!localStorage.zmanColorPreset) localStorage.setItem('zmanColorPreset', 'theme');
     if (!localStorage.zmanCustomColor) localStorage.setItem('zmanCustomColor', '#00e5ff');
+    
+    const storedAlarms = localStorage.getItem('alarms');
+    if (storedAlarms) alarms = JSON.parse(storedAlarms);
+
     loadEnabledZmanimFromStorage();
     applyThemeAndStyle();
     updateTimeAndDate();

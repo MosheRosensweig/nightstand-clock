@@ -22,8 +22,8 @@
     --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.5);
     /* dynamic sizes */
     --weekday-scale: 1.2;
-    --seconds-scale: 0.5;       /* default 1/2 size (new default) */
-    --ampm-scale: 0.25;         /* base 1/4 size, can grow to match seconds */
+    --seconds-scale: 0.5;
+    --ampm-scale: 0.25;
   }
 
   body {
@@ -79,45 +79,43 @@
     transition: all 0.3s ease;
   }
 
-  /* TIME LINE: container for time + vertical stack for AM/PM and Seconds */
+  /* TIME LINE */
   .time-line {
     display: flex;
-    align-items: stretch; /* Forces the extras container to match main time height exactly */
+    align-items: stretch;
     justify-content: center;
     gap: 0.15em;
   }
   .main-hour-minute {
     font-size: 1em;
     font-weight: inherit;
-    line-height: 0.8; /* Crops font padding to match optical top/bottom of digits */
+    line-height: 0.8;
     display: block;
   }
   .time-extras {
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Pins units to top and bottom */
+    justify-content: space-between;
     font-size: 0.35em; 
     text-align: left;
     margin: 0;
     padding: 0;
   }
   .ampm-indicator {
-    opacity: 0.7;
+    opacity: 1;
     font-weight: 500;
-    line-height: 0.7; /* Tight alignment to the top */
+    line-height: 0.7;
   }
   .seconds-sm {
-    opacity: 0.85;
+    opacity: 1;
     font-weight: 400;
-    line-height: 0.7; /* Tight alignment to the bottom */
+    line-height: 0.7;
   }
   .time-extras.hide-extras {
     display: none;
   }
 
   /* layout styles */
-
-  /* weekday */
   .weekday {
     font-size: calc(2.2vw * var(--weekday-scale));
     font-weight: 500;
@@ -127,30 +125,14 @@
     transition: font-size 0.1s ease;
   }
 
-  /* layout styles */
-  .retro .time-line {
-    font-size: 18vw;
-  }
-  .retro .main-hour-minute {
-    font-weight: 700;
-    text-shadow: 0 0 8px currentColor;
-  }
-  .simple .time-line {
-    font-size: 14vw;
-  }
-  .simple .main-hour-minute {
-    font-weight: 400;
-  }
-  .minimal .time-line {
-    font-size: 12vw;
-  }
-  .minimal .main-hour-minute {
-    font-weight: 300;
-  }
-  .split .time-line {
-    font-size: 13vw;
-  }
-  .split .main-hour-minute {
+  .retro .time-line { font-size: 18vw; }
+  .retro .main-hour-minute, .retro .time-extras, .retro .date, .retro .weekday { font-weight: 700; text-shadow: 0 0 8px currentColor; }
+  .simple .time-line { font-size: 14vw; }
+  .simple .main-hour-minute { font-weight: 400; }
+  .minimal .time-line { font-size: 12vw; }
+  .minimal .main-hour-minute { font-weight: 300; }
+  .split .time-line { font-size: 13vw; }
+  .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday {
     font-weight: 500;
     background: linear-gradient(135deg, var(--fg) 30%, #aaffff);
     background-clip: text;
@@ -159,15 +141,13 @@
     text-shadow: none;
   }
   
-  .main-hour-minute {
-    font-size: 1em;
-  }
+  .main-hour-minute { font-size: 1em; }
 
   .date {
     font-size: 2.8vw;
     margin-top: 18px;
     font-weight: 400;
-    opacity: 0.85;
+    opacity: 1;
   }
   .weather {
     margin-top: 24px;
@@ -179,6 +159,7 @@
     padding: 10px 28px;
     border-radius: 60px;
     gap: 12px;
+    color: var(--weather-fg, var(--fg));
   }
   .weather-stack {
     display: flex;
@@ -211,7 +192,7 @@
     color: var(--zman-fg, var(--fg));
   }
 
-  /* MODAL SCROLLABLE */
+  /* MODAL */
   .modal {
     display: none;
     position: fixed;
@@ -237,7 +218,6 @@
     border: 1px solid rgba(0, 230, 255, 0.3);
     box-shadow: var(--shadow-soft);
     font-family: 'Inter', system-ui, sans-serif;
-    scrollbar-width: thin;
   }
   .panel::-webkit-scrollbar { width: 5px; }
   .panel::-webkit-scrollbar-track { background: #1e2335; border-radius: 10px; }
@@ -248,8 +228,9 @@
     font-weight: 500;
     margin-bottom: 20px;
     border-left: 4px solid var(--fg);
-    padding-left: 16px;
+    padding-left: 166px;
   }
+  .panel h2 { padding-left: 16px; }
 
   label {
     display: block;
@@ -297,10 +278,6 @@
     cursor: pointer;
     accent-color: var(--fg);
   }
-  .zman-check span {
-    font-family: monospace;
-    font-size: 0.9rem;
-  }
 
   .button-group {
     display: flex;
@@ -327,96 +304,14 @@
     border-color: var(--fg);
     transform: translateY(-2px);
   }
-  #save {
-    background: #00b8d4cc;
-    border-color: #00e5ff;
-    font-weight: 600;
-  }
-  hr {
-    margin: 20px 0;
-    border-color: rgba(0, 229, 255, 0.3);
-  }
-  #advanced {
-    display: none;
-    animation: fadeSlide 0.2s;
-  }
-  /* TABS */
-  .tabs {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-    border-bottom: 1px solid rgba(0, 229, 255, 0.3);
-    padding-bottom: 10px;
-  }
-  .tab {
-    padding: 8px 16px;
-    cursor: pointer;
-    border-radius: 12px;
-    transition: var(--transition-smooth);
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #bbd4ff;
-  }
-  .tab.active {
-    background: rgba(0, 229, 255, 0.2);
-    color: var(--fg);
-    border: 1px solid rgba(0, 229, 255, 0.4);
-  }
-  .tab-content {
-    display: none;
-    animation: fadeIn 0.2s ease;
-  }
-  .tab-content.active {
-    display: block;
-  }
+  #save { background: #00b8d4cc; border-color: #00e5ff; font-weight: 600; }
 
-  /* ALARMS */
-  .alarm-item {
-    background: rgba(20, 25, 40, 0.5);
-    border-radius: 20px;
-    padding: 16px;
-    margin-top: 12px;
-    border: 1px solid rgba(0, 229, 255, 0.1);
-  }
-  .alarm-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .alarm-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .alarm-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .alarm-input-group input {
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 10px;
-    color: white;
-  }
-  .remove-alarm {
-    color: #ff3b30;
-    cursor: pointer;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-
-  /* FLASHING BACKGROUND */
-  @keyframes alarmFlash {
-    0%, 49% { background: #000000; color: #ffffff; }
-    50%, 100% { background: #ffffff; color: #000000; }
-  }
-  .alarm-active {
-    animation: alarmFlash var(--flash-speed, 0.5s) infinite;
-  }
+  #advanced { display: none; animation: fadeSlide 0.2s; }
+  .tabs { display: flex; gap: 10px; margin-top: 20px; border-bottom: 1px solid rgba(0, 229, 255, 0.3); padding-bottom: 10px; }
+  .tab { padding: 8px 16px; cursor: pointer; border-radius: 12px; transition: var(--transition-smooth); font-size: 0.9rem; font-weight: 500; color: #bbd4ff; }
+  .tab.active { background: rgba(0, 229, 255, 0.2); color: var(--fg); border: 1px solid rgba(0, 229, 255, 0.4); }
+  .tab-content { display: none; animation: fadeIn 0.2s ease; }
+  .tab-content.active { display: block; }
 
   /* WEATHER TIMELINE BAR */
   .weather-timeline {
@@ -429,27 +324,28 @@
     border-radius: 20px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    color: var(--weather-fg, var(--fg));
   }
   .weather-timeline::-webkit-scrollbar { display: none; }
-  .weather-timeline-inner {
-    display: flex;
-    gap: 20px;
-    padding: 0 20px;
-    width: max-content;
-  }
-  .timeline-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.9rem;
-    min-width: 60px;
-  }
+  .weather-timeline-inner { display: flex; gap: 20px; padding: 0 20px; width: max-content; }
+  .timeline-item { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.9rem; min-width: 60px; }
   .timeline-time { opacity: 0.6; font-size: 0.75rem; }
   .timeline-temp { font-weight: 600; }
   .timeline-icon { font-size: 1.2rem; }
+  .night-moon { filter: grayscale(100%) brightness(1000%); display: inline-block; }
 
+  /* ALARMS */
+  .alarm-item { background: rgba(20, 25, 40, 0.5); border-radius: 20px; padding: 16px; margin-top: 12px; border: 1px solid rgba(0, 229, 255, 0.1); }
+  .alarm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .alarm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .alarm-input-group { display: flex; flex-direction: column; gap: 4px; }
+  .alarm-input-group input { padding: 8px 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 10px; color: white; }
+  .remove-alarm { color: #ff3b30; cursor: pointer; font-size: 0.8rem; text-transform: uppercase; font-weight: 600; }
+
+  @keyframes alarmFlash { 0%, 49% { background: #000000; color: #ffffff; } 50%, 100% { background: #ffffff; color: #000000; } }
+  .alarm-active { animation: alarmFlash var(--flash-speed, 0.5s) infinite; }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
   @media (max-width: 640px) {
     .date, .weather, .next-zman { font-size: 5vw; }
     .weekday { font-size: calc(4vw * var(--weekday-scale)); }
@@ -471,14 +367,13 @@
     </div>
   </div>
   <div class="date" id="date"></div>
-  <div class="weather" id="weather">🌙 loading forecast...</div>
+  <div class="weather" id="weather"><span class="night-moon">🌙</span> loading forecast...</div>
   <div class="weather-timeline" id="weatherTimeline">
     <div class="weather-timeline-inner" id="timelineInner"></div>
   </div>
   <div class="next-zman" id="nextZman">🕯️ Next Zman: --</div>
 </div>
 
-<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="panel">
     <h2>✨ Ambient Control + Zmanim</h2>
@@ -500,7 +395,6 @@
         <div class="tab" data-tab="tab-display">🖥️ Display</div>
       </div>
 
-      <!-- Zmanim Tab -->
       <div id="tab-zmanim" class="tab-content active">
         <label>🕯️ Zmanim Selection (Hebrew names)</label>
         <div id="zmanimChecklist" class="zmanim-grid"></div>
@@ -513,13 +407,11 @@
         <input type="color" id="zmanCustomColor" value="#00e5ff">
       </div>
 
-      <!-- Alarms Tab -->
       <div id="tab-alarms" class="tab-content">
         <div id="alarmList"></div>
         <button id="addAlarm" style="margin-top: 15px; background: rgba(0, 229, 255, 0.2);">➕ Add Alarm (max 10)</button>
       </div>
 
-      <!-- Weather Tab -->
       <div id="tab-weather" class="tab-content">
         <label>🌤️ Weather format</label>
         <select id="weatherFmt">
@@ -529,9 +421,11 @@
         </select>
         <label>📈 Weather Timeline Bar</label>
         <select id="showWeatherTimeline"><option value="true">Show (Hourly)</option><option value="false">Hide</option></select>
+        <label>🎨 Weather Text Color</label>
+        <select id="weatherColorPreset"><option value="theme">Same as theme</option><option value="custom">Custom Color</option></select>
+        <input type="color" id="weatherCustomColor" value="#00e5ff">
       </div>
 
-      <!-- Display Tab -->
       <div id="tab-display" class="tab-content">
         <label>📆 Weekday Text Size</label>
         <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
@@ -551,7 +445,6 @@
 </div>
 
 <script>
-  // ---------- ZMANIM DATA: Hebrew names + API keys ----------
   const ZMANIM_DB = {
     alotHaShachar: { he: "עלות השחר", icon: "🌄", default: true, display: "Alot Hashachar" },
     sunrise: { he: "נץ החמה", icon: "🌅", default: true, display: "Netz" },
@@ -567,84 +460,38 @@
     sofZmanShmaMGA: { he: "סוף ק\"ש (מג\"א)", icon: "📜", default: false, display: "Sof Zman Shma MGA" }
   };
 
-  let currentZmanimData = {};       // { key: Date object }
-  let enabledZmanKeys = new Set();   // keys enabled by user
-  let alarms = [];                   // { time: "HH:mm", enabled: bool, flashSpeed: sec, duration: sec }
-  let activeAlarmTimeout = null;
-  let nextZmanTimeout = null;
+  let currentZmanimData = {}, enabledZmanKeys = new Set(), alarms = [], activeAlarmTimeout = null, lastFetchedDate = "";
 
-  // DOM elements
-  const weekdayEl = document.getElementById('weekday');
-  const mainTimeSpan = document.getElementById('mainTime');
-  const secondsSmallSpan = document.getElementById('secondsSmall');
-  const ampmSpan = document.getElementById('ampmIndicator');
-  const dateEl = document.getElementById('date');
-  const weatherEl = document.getElementById('weather');
-  const nextZmanEl = document.getElementById('nextZman');
-  const weatherTimeline = document.getElementById('weatherTimeline');
-  const timelineInner = document.getElementById('timelineInner');
-  const clockContainer = document.getElementById('clock');
-  const gearBtn = document.getElementById('gear');
-  const modal = document.getElementById('modal');
-  const layoutSelect = document.getElementById('layout');
-  const colorPreset = document.getElementById('colorPreset');
-  const customColor = document.getElementById('customColor');
-  const bgPreset = document.getElementById('bgPreset');
-  const customBg = document.getElementById('customBg');
-  const weatherFmtSelect = document.getElementById('weatherFmt');
-  const dateFmtSelect = document.getElementById('dateFmt');
-  const fontSelect = document.getElementById('font');
-  const advBtn = document.getElementById('advBtn');
-  const advancedDiv = document.getElementById('advanced');
-  const fullscreenBtn = document.getElementById('fullscreen');
-  const saveBtn = document.getElementById('save');
-  const weekdaySizeSelect = document.getElementById('weekdaySize');
-  const showTimeExtrasSelect = document.getElementById('showTimeExtras');
-  const zmanDisplayTypeSelect = document.getElementById('zmanDisplayType');
-  const showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix');
-  const zmanColorPresetSelect = document.getElementById('zmanColorPreset');
-  const zmanCustomColorInput = document.getElementById('zmanCustomColor');
-  const showWeatherTimelineSelect = document.getElementById('showWeatherTimeline');
+  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor');
 
-  // Helper: Get icon based on weather code
-  function getWeatherIcon(code) {
-    if (code >= 61 && code <= 65) return "🌧️";
-    if (code >= 71 && code <= 75) return "❄️";
+  function getWeatherIcon(code, hour = -1) {
+    if (hour === -1) hour = new Date().getHours();
+    const isNight = hour >= 19 || hour <= 6;
     if (code >= 95) return "⛈️";
-    if (code >= 3 && code <= 4) return "☁️";
-    return "☀️";
+    if (code >= 71 && code <= 77) return "❄️";
+    if (code >= 80 && code <= 82) return "🌧️";
+    if (code >= 61 && code <= 67) return "🌧️";
+    if (code >= 51 && code <= 55) return "🌦️";
+    if (code >= 45 && code <= 48) return "🌫️";
+    if (code >= 3) return "☁️";
+    return isNight ? '<span class="night-moon">🌙</span>' : (code >= 1 ? "🌤️" : "☀️");
   }
 
-  // Update hourly timeline
-  let lastWeatherData = null;
   function updateWeatherTimeline(data) {
     if (!data.hourly) return;
-    lastWeatherData = data;
     timelineInner.innerHTML = '';
-    const now = new Date();
-    const currentHour = now.getHours();
-    
-    // Show next 24 hours
+    const now = new Date(), currentHour = now.getHours();
     for (let i = currentHour; i < currentHour + 24; i++) {
-      const temp = data.hourly.temperature_2m[i];
-      const code = data.hourly.weathercode[i];
-      const timeIndex = i % 24;
+      const temp = data.hourly.temperature_2m[i], code = data.hourly.weathercode[i], timeIndex = i % 24;
       const displayTime = timeIndex > 12 ? (timeIndex - 12) + "pm" : (timeIndex === 12 ? "12pm" : (timeIndex === 0 ? "12am" : timeIndex + "am"));
-      
       const item = document.createElement('div');
       item.className = 'timeline-item';
-      item.innerHTML = `
-        <span class="timeline-time">${displayTime}</span>
-        <span class="timeline-icon">${getWeatherIcon(code)}</span>
-        <span class="timeline-temp">${Math.round(temp)}°</span>
-      `;
+      item.innerHTML = `<span class="timeline-time">${displayTime}</span><span class="timeline-icon">${getWeatherIcon(code, timeIndex)}</span><span class="timeline-temp">${Math.round(temp)}°</span>`;
       timelineInner.appendChild(item);
     }
-    const showTimeline = localStorage.showWeatherTimeline === 'true';
-    weatherTimeline.style.display = showTimeline ? 'block' : 'none';
+    weatherTimeline.style.display = (localStorage.showWeatherTimeline === 'true') ? 'block' : 'none';
   }
 
-  // Tabs Logic
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -654,558 +501,173 @@
     });
   });
 
-  // Alarm Logic
   function createAlarmUI() {
-    const list = document.getElementById('alarmList');
-    list.innerHTML = '';
+    const list = document.getElementById('alarmList'); list.innerHTML = '';
     alarms.forEach((alarm, index) => {
-      const item = document.createElement('div');
-      item.className = 'alarm-item';
-      item.innerHTML = `
-        <div class="alarm-header">
-          <strong>Alarm #${index + 1}</strong>
-          <span class="remove-alarm" onclick="removeAlarm(${index})">🗑️ Remove</span>
-        </div>
-        <div class="alarm-grid">
-          <div class="alarm-input-group">
-            <label>Time</label>
-            <input type="time" value="${alarm.time}" onchange="updateAlarm(${index}, 'time', this.value)">
-          </div>
-          <div class="alarm-input-group">
-            <label>Enabled</label>
-            <select onchange="updateAlarm(${index}, 'enabled', this.value === 'true')">
-              <option value="true" ${alarm.enabled ? 'selected' : ''}>ON</option>
-              <option value="false" ${!alarm.enabled ? 'selected' : ''}>OFF</option>
-            </select>
-          </div>
-          <div class="alarm-input-group">
-            <label>Flash Speed (sec)</label>
-            <input type="number" step="0.1" min="0.1" value="${alarm.flashSpeed}" onchange="updateAlarm(${index}, 'flashSpeed', this.value)">
-          </div>
-          <div class="alarm-input-group">
-            <label>Duration (sec)</label>
-            <input type="number" min="1" value="${alarm.duration}" onchange="updateAlarm(${index}, 'duration', this.value)">
-          </div>
-        </div>
-      `;
+      const item = document.createElement('div'); item.className = 'alarm-item';
+      item.innerHTML = `<div class="alarm-header"><strong>Alarm #${index + 1}</strong><span class="remove-alarm" onclick="removeAlarm(${index})">🗑️ Remove</span></div><div class="alarm-grid"><div class="alarm-input-group"><label>Time</label><input type="time" value="${alarm.time}" onchange="updateAlarm(${index}, 'time', this.value)"></div><div class="alarm-input-group"><label>Enabled</label><select onchange="updateAlarm(${index}, 'enabled', this.value === 'true')"><option value="true" ${alarm.enabled ? 'selected' : ''}>ON</option><option value="false" ${!alarm.enabled ? 'selected' : ''}>OFF</option></select></div><div class="alarm-input-group"><label>Flash Speed (sec)</label><input type="number" step="0.1" min="0.1" value="${alarm.flashSpeed}" onchange="updateAlarm(${index}, 'flashSpeed', this.value)"></div><div class="alarm-input-group"><label>Duration (sec)</label><input type="number" min="1" value="${alarm.duration}" onchange="updateAlarm(${index}, 'duration', this.value)"></div></div>`;
       list.appendChild(item);
     });
   }
-
-  window.addAlarm = () => {
-    if (alarms.length >= 10) return;
-    alarms.push({ time: "08:00", enabled: true, flashSpeed: 0.5, duration: 30 });
-    createAlarmUI();
-  };
-
-  window.removeAlarm = (index) => {
-    alarms.splice(index, 1);
-    createAlarmUI();
-  };
-
-  window.updateAlarm = (index, field, value) => {
-    alarms[index][field] = value;
-  };
-
-  function checkAlarms() {
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const seconds = now.getSeconds();
-    
-    // Only trigger at the start of the minute
-    if (seconds !== 0) return;
-
-    alarms.forEach(alarm => {
-      if (alarm.enabled && alarm.time === timeStr) {
-        triggerAlarm(alarm);
-      }
-    });
-  }
+  window.addAlarm = () => { if (alarms.length < 10) { alarms.push({ time: "08:00", enabled: true, flashSpeed: 0.5, duration: 30 }); createAlarmUI(); } };
+  window.removeAlarm = (index) => { alarms.splice(index, 1); createAlarmUI(); };
+  window.updateAlarm = (index, field, value) => { alarms[index][field] = value; };
 
   function triggerAlarm(alarm) {
     if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout);
-    
     document.body.style.setProperty('--flash-speed', `${alarm.flashSpeed}s`);
     document.body.classList.add('alarm-active');
-    
-    activeAlarmTimeout = setTimeout(() => {
-      stopAlarm();
-    }, alarm.duration * 1000);
-  }
-
-  function stopAlarm() {
-    if (activeAlarmTimeout) {
-      clearTimeout(activeAlarmTimeout);
-      activeAlarmTimeout = null;
-    }
-    document.body.classList.remove('alarm-active');
-  }
-
-  document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
-
-  // Helper: load & apply advanced sizes + AM/PM dynamic scaling
-  function applyAdvancedSizesAndAmpm() {
-    let weekdayScale = parseFloat(localStorage.weekdaySize || "1.2");
-    document.documentElement.style.setProperty('--weekday-scale', weekdayScale);
+    activeAlarmTimeout = setTimeout(() => { document.body.classList.remove('alarm-active'); activeAlarmTimeout = null; }, alarm.duration * 1000);
   }
 
   function applyThemeAndStyle() {
-    let fgValue = (localStorage.colorPreset === 'custom') ? (localStorage.customColor || '#00e5ff') : (localStorage.colorPreset || '#00e5ff');
-    let bgValue = (localStorage.bgPreset === 'custom') ? (localStorage.customBg || '#000000') : (localStorage.bgPreset || '#000000');
-    document.documentElement.style.setProperty('--fg', fgValue);
-    document.documentElement.style.setProperty('--bg', bgValue);
-    
-    // apply zman text color
-    let zmanFg = (localStorage.zmanColorPreset === 'custom') ? (localStorage.zmanCustomColor || '#00e5ff') : fgValue;
-    document.documentElement.style.setProperty('--zman-fg', zmanFg);
-
-    const activeLayout = localStorage.layout || 'retro';
-    clockContainer.className = activeLayout;
-    const activeFont = localStorage.font || "'Inter', 'SF Mono', monospace";
-    document.body.style.fontFamily = activeFont;
-    applyAdvancedSizesAndAmpm();
-    
-    const showExtras = (localStorage.showTimeExtras !== 'false');
-    const extrasPanel = document.querySelector('.time-extras');
-    if (showExtras) extrasPanel.classList.remove('hide-extras');
-    else extrasPanel.classList.add('hide-extras');
+    const fg = (localStorage.colorPreset === 'custom') ? (localStorage.customColor || '#00e5ff') : (localStorage.colorPreset || '#00e5ff');
+    const bg = (localStorage.bgPreset === 'custom') ? (localStorage.customBg || '#000000') : (localStorage.bgPreset || '#000000');
+    document.documentElement.style.setProperty('--fg', fg);
+    document.documentElement.style.setProperty('--bg', bg);
+    document.documentElement.style.setProperty('--zman-fg', (localStorage.zmanColorPreset === 'custom') ? (localStorage.zmanCustomColor || '#00e5ff') : fg);
+    document.documentElement.style.setProperty('--weather-fg', (localStorage.weatherColorPreset === 'custom') ? (localStorage.weatherCustomColor || '#00e5ff') : fg);
+    clockContainer.className = localStorage.layout || 'retro';
+    document.body.style.fontFamily = localStorage.font || "'Inter', 'SF Mono', monospace";
+    document.documentElement.style.setProperty('--weekday-scale', localStorage.weekdaySize || "1.2");
+    document.querySelector('.time-extras').classList.toggle('hide-extras', localStorage.showTimeExtras === 'false');
   }
 
-  // update time/date + trigger next zman refresh
   function updateTimeAndDate() {
     const now = new Date();
-    checkDailyRefresh(); // ensure we refresh on day change
-    checkAlarms();       // check if any alarms should trigger
-    const showSecondsGlobal = (localStorage.seconds || 'true') === 'true';
-    let hours = now.getHours();
-    const minutes = now.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    let displayHours = hours % 12;
-    if (displayHours === 0) displayHours = 12;
-    mainTimeSpan.textContent = `${displayHours}:${minutes.toString().padStart(2, '0')}`;
-    const secondsVal = now.getSeconds().toString().padStart(2, '0');
-    secondsSmallSpan.textContent = secondsVal;
+    if (now.toDateString() !== lastFetchedDate) { lastFetchedDate = now.toDateString(); initGeolocationAndZmanim(); }
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    if (now.getSeconds() === 0) alarms.forEach(a => { if (a.enabled && a.time === timeStr) triggerAlarm(a); });
+
+    let h = now.getHours(), m = now.getMinutes(), ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    mainTimeSpan.textContent = `${h}:${m.toString().padStart(2, '0')}`;
+    secondsSmallSpan.textContent = now.getSeconds().toString().padStart(2, '0');
     ampmSpan.textContent = ampm;
-    
     weekdayEl.textContent = now.toLocaleDateString([], { weekday: 'long' }).toUpperCase();
-    const dateFormat = localStorage.dateFmt || 'medium';
-    let dateStr = '';
-    if (dateFormat === 'numeric') dateStr = now.toLocaleDateString();
-    else if (dateFormat === 'long') dateStr = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    else dateStr = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-    dateEl.textContent = dateStr;
-    updateNextZmanDisplay(); // refresh "Next Zman"
+    const df = localStorage.dateFmt || 'medium';
+    dateEl.textContent = df === 'numeric' ? now.toLocaleDateString() : (df === 'long' ? now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }));
+    updateNextZmanDisplay();
   }
 
-  // Weather (same as original but keep)
-  let lastTemperature = null, lastWeatherCode = 0, weatherConditionText = "Clear";
-  let todayHigh = null, todayLow = null, rainInfo = "";
-
+  let lastTemp = null, lastCode = 0, conditionTxt = "Clear", todayH = null, todayL = null, rainInf = "";
   function updateWeatherDisplay() {
-    if (lastTemperature === null) { weatherEl.textContent = "⛅ waiting for weather..."; return; }
-    const fmt = localStorage.weatherFmt || 'extended';
-    const tempRounded = Math.round(lastTemperature);
-    const icon = getWeatherIcon(lastWeatherCode);
-    
-    const showTimeline = localStorage.showWeatherTimeline === 'true';
-    weatherTimeline.style.display = showTimeline ? 'block' : 'none';
-
-    if (fmt === 'numbers') {
-      weatherEl.textContent = `${icon} ${tempRounded}°F`;
-    } else if (fmt === 'words') {
-      weatherEl.textContent = `${icon} ${tempRounded}°F · ${weatherConditionText}`;
-    } else {
-      // Extended format: Icon -> Current -> Description -> Stacked High/Low -> Rain
-      const highLowHtml = `<div class="weather-stack"><span>High: ${Math.round(todayHigh)}°</span><span>Low: ${Math.round(todayLow)}°</span></div>`;
-      const rainHtml = `<div class="weather-rain">${rainInfo}</div>`;
-      weatherEl.innerHTML = `<span>${icon} ${tempRounded}°F</span> <span>${weatherConditionText}</span> ${highLowHtml} ${rainHtml}`;
-    }
+    if (lastTemp === null) { weatherEl.textContent = "⛅ waiting..."; return; }
+    const fmt = localStorage.weatherFmt || 'extended', icon = getWeatherIcon(lastCode);
+    weatherTimeline.style.display = (localStorage.showWeatherTimeline === 'true') ? 'block' : 'none';
+    if (fmt === 'numbers') weatherEl.innerHTML = `${icon} ${Math.round(lastTemp)}°F`;
+    else if (fmt === 'words') weatherEl.innerHTML = `${icon} ${Math.round(lastTemp)}°F · ${conditionTxt}`;
+    else weatherEl.innerHTML = `<span>${icon} ${Math.round(lastTemp)}°F</span> <span>${conditionTxt}</span> <div class="weather-stack"><span>High: ${Math.round(todayH)}°</span><span>Low: ${Math.round(todayL)}°</span></div> <div class="weather-rain">${rainInf}</div>`;
   }
 
   async function fetchWeather(lat, lon) {
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weathercode,precipitation_probability,precipitation&temperature_unit=fahrenheit&timezone=auto`;
-      const response = await fetch(url);
-      const data = await response.json();
-      
+      const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weathercode,precipitation&temperature_unit=fahrenheit&timezone=auto`);
+      const data = await resp.json();
       if (data.current) {
-        lastTemperature = data.current.temperature_2m;
-        lastWeatherCode = data.current.weathercode;
-        
-        // High/Low
-        if (data.daily) {
-          todayHigh = data.daily.temperature_2m_max[0];
-          todayLow = data.daily.temperature_2m_min[0];
-        }
-
-        // Timeline Bar
+        lastTemp = data.current.temperature_2m; lastCode = data.current.weathercode;
+        if (data.daily) { todayH = data.daily.temperature_2m_max[0]; todayL = data.daily.temperature_2m_min[0]; }
         updateWeatherTimeline(data);
-
-        // Rain Logic
         if (data.hourly) {
-          const now = new Date();
-          const currentHour = now.getHours();
-          let rainStart = -1;
-          let rainEnd = -1;
-          let totalRainToday = false;
-
-          for (let i = currentHour; i < 24; i++) {
-            if (data.hourly.precipitation[i] > 0) {
-              totalRainToday = true;
-              if (rainStart === -1) rainStart = i;
-              rainEnd = i;
-            } else if (rainStart !== -1 && rainEnd !== -1) {
-              // Found a gap after rain
-              break;
-            }
-          }
-
-          if (totalRainToday && rainStart !== -1) {
-            const startStr = rainStart > 12 ? (rainStart - 12) + "pm" : (rainStart === 12 ? "12pm" : (rainStart === 0 ? "12am" : rainStart + "am"));
-            const duration = rainEnd - rainStart + 1;
-            rainInfo = `🌧️ Rain at ${startStr} (${duration}h)`;
-          } else {
-            rainInfo = "☀️ No rain today";
-          }
+          let rs = -1, re = -1, rToday = false;
+          for (let i = new Date().getHours(); i < 24; i++) { if (data.hourly.precipitation[i] > 0) { rToday = true; if (rs === -1) rs = i; re = i; } else if (rs !== -1) break; }
+          rainInf = rToday ? `🌧️ Rain at ${rs > 12 ? (rs-12)+'pm' : (rs===12?'12pm':(rs===0?'12am':rs+'am'))} (${re-rs+1}h)` : "☀️ No rain today";
         }
-
-        const wCode = lastWeatherCode;
-        if (wCode === 0) weatherConditionText = "Clear sky";
-        else if (wCode === 1 || wCode === 2) weatherConditionText = "Mainly clear";
-        else if (wCode === 3) weatherConditionText = "Overcast";
-        else if (wCode >= 45 && wCode <= 48) weatherConditionText = "Foggy";
-        else if (wCode >= 51 && wCode <= 55) weatherConditionText = "Drizzle";
-        else if (wCode >= 61 && wCode <= 65) weatherConditionText = "Rain";
-        else if (wCode >= 71 && wCode <= 75) weatherConditionText = "Snow";
-        else if (wCode >= 80 && wCode <= 82) weatherConditionText = "Rain showers";
-        else if (wCode >= 95) weatherConditionText = "Thunderstorm";
-        else weatherConditionText = "Mild";
-        
+        const c = lastCode;
+        conditionTxt = c === 0 ? "Clear sky" : (c <= 2 ? "Mainly clear" : (c === 3 ? "Overcast" : (c <= 48 ? "Foggy" : (c <= 55 ? "Drizzle" : (c <= 67 ? "Rain" : (c <= 77 ? "Snow" : (c <= 82 ? "Showers" : "Thunderstorm")))))));
         updateWeatherDisplay();
       }
-    } catch(e) { 
-      console.error(e);
-      weatherEl.textContent = "🌡️ offline · ambient mode"; 
-      lastTemperature = null; 
-    }
+    } catch(e) { weatherEl.textContent = "🌡️ offline"; }
   }
 
-  // ZMANIM API: fetch from hebcal
   async function fetchZmanim(lat, lon, specificDate = null) {
     try {
-      const targetDate = specificDate || new Date();
-      const yyyy = targetDate.getFullYear();
-      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-      const dd = String(targetDate.getDate()).padStart(2, '0');
-      const dateStr = `${yyyy}-${mm}-${dd}`;
-      const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York";
-      const url = `https://www.hebcal.com/zmanim?cfg=json&latitude=${lat}&longitude=${lon}&tzid=${tzid}&date=${dateStr}`;
-      const resp = await fetch(url);
+      const d = specificDate || new Date(), ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const resp = await fetch(`https://www.hebcal.com/zmanim?cfg=json&latitude=${lat}&longitude=${lon}&tzid=${Intl.DateTimeFormat().resolvedOptions().timeZone}&date=${ds}`);
       const data = await resp.json();
-      const times = data.times;
-      if (!times) throw new Error("No zmanim data");
-      const parsed = {};
-      for (const [key, isoTime] of Object.entries(times)) {
-        if (ZMANIM_DB[key]) {
-          parsed[key] = new Date(isoTime);
-        }
-      }
-      currentZmanimData = parsed;
+      if (data.times) { currentZmanimData = {}; for (const [k, v] of Object.entries(data.times)) if (ZMANIM_DB[k]) currentZmanimData[k] = new Date(v); }
       updateNextZmanDisplay();
-    } catch (err) {
-      console.warn("Zmanim fetch error", err);
-      nextZmanEl.textContent = "⚠️ Zmanim unavailable";
-    }
-  }
-
-  function formatCountdown(ms) {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    
-    let parts = [];
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0 || hours > 0) parts.push(`${minutes}m`);
-    parts.push(`${seconds}s`);
-    return parts.join(" ");
+    } catch (e) { nextZmanEl.textContent = "⚠️ unavailable"; }
   }
 
   function updateNextZmanDisplay() {
-    if (!currentZmanimData || Object.keys(currentZmanimData).length === 0) {
-      nextZmanEl.textContent = "📅 Loading Zmanim...";
-      return;
-    }
-    const now = new Date();
-    let upcoming = null;
-    let upcomingKey = null;
-    
-    const sortedKeys = Object.keys(currentZmanimData).sort((a, b) => currentZmanimData[a] - currentZmanimData[b]);
-    
-    for (const key of sortedKeys) {
-      if (!enabledZmanKeys.has(key)) continue;
-      const zmanDate = currentZmanimData[key];
-      if (zmanDate > now) {
-        if (!upcoming || zmanDate < upcoming) {
-          upcoming = zmanDate;
-          upcomingKey = key;
-        }
-      }
-    }
-
-    if (upcomingKey && upcoming) {
-      const meta = ZMANIM_DB[upcomingKey] || { he: upcomingKey, icon: "🕯️" };
-      const displayType = localStorage.zmanDisplayType || 'time';
-      const showPrefix = (localStorage.showNextZmanPrefix !== 'false');
-      
-      let prefix = showPrefix ? "Next Zman: " : "";
-      let icon = meta.icon || "🕯️";
-      let text = "";
-
-      if (displayType === 'countdown') {
-        const diff = upcoming - now;
-        text = `${prefix}${meta.he} will be in ${formatCountdown(diff)}`;
-      } else {
-        const timeStr = upcoming.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        text = `${prefix}${meta.he} will be at ${timeStr}`;
-      }
-      nextZmanEl.innerHTML = `${icon} ${text}`;
+    if (!Object.keys(currentZmanimData).length) { nextZmanEl.textContent = "📅 Loading..."; return; }
+    const now = new Date(); let up = null, upK = null;
+    Object.keys(currentZmanimData).sort((a,b)=>currentZmanimData[a]-currentZmanimData[b]).forEach(k => { if (enabledZmanKeys.has(k) && currentZmanimData[k] > now && (!up || currentZmanimData[k] < up)) { up = currentZmanimData[k]; upK = k; } });
+    if (upK) {
+      const m = ZMANIM_DB[upK], dt = localStorage.zmanDisplayType || 'time', p = (localStorage.showNextZmanPrefix !== 'false') ? "Next Zman: " : "";
+      const txt = dt === 'countdown' ? `${p}${m.he} in ${Math.floor((up-now)/3600000)}h ${Math.floor(((up-now)%3600000)/60000)}m` : `${p}${m.he} at ${up.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+      nextZmanEl.innerHTML = `${m.icon} ${txt}`;
     } else {
-      const firstZman = currentZmanimData[sortedKeys[0]];
-      if (firstZman && firstZman.getDate() === now.getDate()) {
-        nextZmanEl.textContent = "🌙 Fetching tomorrow's Zmanim...";
-        const tomorrow = new Date();
-        tomorrow.setDate(now.getDate() + 1);
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(pos => fetchZmanim(pos.coords.latitude, pos.coords.longitude, tomorrow));
-        } else {
-          fetchZmanim(40.7128, -74.0060, tomorrow);
-        }
-      } else {
-        nextZmanEl.textContent = "🌟 No more Zmanim today · Check tomorrow";
-      }
+      nextZmanEl.textContent = "🌙 Fetching tomorrow...";
+      const tom = new Date(); tom.setDate(now.getDate()+1);
+      if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => fetchZmanim(p.coords.latitude, p.coords.longitude, tom));
     }
   }
 
-  let lastFetchedDate = "";
   function initGeolocationAndZmanim() {
-    const now = new Date();
-    const dateStr = now.toDateString();
-    lastFetchedDate = dateStr;
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => { 
-          fetchZmanim(pos.coords.latitude, pos.coords.longitude); 
-          fetchWeather(pos.coords.latitude, pos.coords.longitude); 
-        },
-        () => { 
-          fetchZmanim(40.7128, -74.0060); 
-          fetchWeather(40.7128, -74.0060); 
-        }
-      );
-    } else {
-      fetchZmanim(40.7128, -74.0060);
-      fetchWeather(40.7128, -74.0060);
-    }
+    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { fetchZmanim(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude); }, () => { fetchZmanim(40.7128, -74.0060); fetchWeather(40.7128, -74.0060); });
+    else { fetchZmanim(40.7128, -74.0060); fetchWeather(40.7128, -74.0060); }
   }
 
-  function checkDailyRefresh() {
-    const now = new Date();
-    if (now.toDateString() !== lastFetchedDate) {
-      console.log("New day detected, refreshing zmanim...");
-      initGeolocationAndZmanim();
-    }
-  }
-
-  // Build dynamic checklist of Zmanim (hebrew)
   function buildZmanimChecklist() {
-    const container = document.getElementById('zmanimChecklist');
-    if (!container) return;
-    container.innerHTML = '';
-    for (const [key, meta] of Object.entries(ZMANIM_DB)) {
-      const isChecked = enabledZmanKeys.has(key);
-      const div = document.createElement('label');
-      div.className = 'zman-check';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.value = key;
-      cb.checked = isChecked;
-      cb.addEventListener('change', (e) => {
-        if (e.target.checked) enabledZmanKeys.add(key);
-        else enabledZmanKeys.delete(key);
-        localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
-        updateNextZmanDisplay();
-      });
-      const span = document.createElement('span');
-      span.innerText = `${meta.he} (${meta.display})`;
-      div.appendChild(cb);
-      div.appendChild(span);
-      container.appendChild(div);
+    const c = document.getElementById('zmanimChecklist'); if (!c) return; c.innerHTML = '';
+    for (const [k, m] of Object.entries(ZMANIM_DB)) {
+      const l = document.createElement('label'); l.className = 'zman-check';
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = enabledZmanKeys.has(k);
+      cb.addEventListener('change', e => { if (e.target.checked) enabledZmanKeys.add(k); else enabledZmanKeys.delete(k); localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys])); updateNextZmanDisplay(); });
+      l.appendChild(cb); l.innerHTML += `<span>${m.he} (${m.display})</span>`;
+      c.appendChild(l);
     }
   }
 
-  function loadEnabledZmanimFromStorage() {
-    const stored = localStorage.getItem('enabledZmanim');
-    if (stored) {
-      const arr = JSON.parse(stored);
-      enabledZmanKeys.clear();
-      arr.forEach(k => { if (ZMANIM_DB[k]) enabledZmanKeys.add(k); });
-    } else {
-      // default: all keys where default:true
-      enabledZmanKeys.clear();
-      for (const [key, meta] of Object.entries(ZMANIM_DB)) if (meta.default) enabledZmanKeys.add(key);
-    }
-    if (enabledZmanKeys.size === 0) {
-      // fallback basic
-      for (const [key, meta] of Object.entries(ZMANIM_DB)) if (meta.default) enabledZmanKeys.add(key);
-    }
-    buildZmanimChecklist();
-  }
-
-  // Save all
   function saveAndClose() {
-    localStorage.layout = layoutSelect.value;
-    localStorage.weatherFmt = weatherFmtSelect.value;
-    localStorage.dateFmt = dateFmtSelect.value;
-    localStorage.font = fontSelect.value;
-    localStorage.colorPreset = colorPreset.value;
-    localStorage.customColor = customColor.value;
-    localStorage.bgPreset = bgPreset.value;
-    localStorage.customBg = customBg.value;
-    localStorage.weekdaySize = weekdaySizeSelect.value;
-    localStorage.showTimeExtras = showTimeExtrasSelect.value;
-    localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
-    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
-    localStorage.zmanColorPreset = zmanColorPresetSelect.value;
-    localStorage.zmanCustomColor = zmanCustomColorInput.value;
-    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
-    // zmanim enabled set already updated via checkboxes
-    localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
+    localStorage.layout = layoutSelect.value; localStorage.weatherFmt = weatherFmtSelect.value; localStorage.dateFmt = dateFmtSelect.value; localStorage.font = fontSelect.value;
+    localStorage.colorPreset = colorPreset.value; localStorage.customColor = customColor.value; localStorage.bgPreset = bgPreset.value; localStorage.customBg = customBg.value;
+    localStorage.weekdaySize = weekdaySizeSelect.value; localStorage.showTimeExtras = showTimeExtrasSelect.value; localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
+    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value; localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value; localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
     localStorage.setItem('alarms', JSON.stringify(alarms));
-    applyThemeAndStyle();
-    updateTimeAndDate();
-    if (lastTemperature !== null) updateWeatherDisplay();
-    updateNextZmanDisplay();
-    modal.style.display = 'none';
+    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); modal.style.display = 'none';
   }
 
   function openModalWithCurrentSettings() {
-    layoutSelect.value = localStorage.layout || 'retro';
-    weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
-
-    dateFmtSelect.value = localStorage.dateFmt || 'medium';
-    fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
-    colorPreset.value = localStorage.colorPreset || '#00e5ff';
-    customColor.value = localStorage.customColor || '#00e5ff';
-    bgPreset.value = localStorage.bgPreset || '#000000';
-    customBg.value = localStorage.customBg || '#000000';
-    weekdaySizeSelect.value = localStorage.weekdaySize || '1.2';
-    showTimeExtrasSelect.value = localStorage.showTimeExtras || 'true';
-    zmanDisplayTypeSelect.value = localStorage.zmanDisplayType || 'time';
-    showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
-    zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme';
-    zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
+    layoutSelect.value = localStorage.layout || 'retro'; weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
+    dateFmtSelect.value = localStorage.dateFmt || 'medium'; fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
+    colorPreset.value = localStorage.colorPreset || '#00e5ff'; customColor.value = localStorage.customColor || '#00e5ff';
+    bgPreset.value = localStorage.bgPreset || '#000000'; customBg.value = localStorage.customBg || '#000000';
+    weekdaySizeSelect.value = localStorage.weekdaySize || '1.2'; showTimeExtrasSelect.value = localStorage.showTimeExtras || 'true';
+    zmanDisplayTypeSelect.value = localStorage.zmanDisplayType || 'time'; showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
+    zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme'; zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
+    weatherColorPresetSelect.value = localStorage.weatherColorPreset || 'theme'; weatherCustomColorInput.value = localStorage.weatherCustomColor || '#00e5ff';
     showWeatherTimelineSelect.value = localStorage.showWeatherTimeline || 'true';
-    
-    const storedAlarms = localStorage.getItem('alarms');
-    if (storedAlarms) alarms = JSON.parse(storedAlarms);
-    createAlarmUI();
-
-    loadEnabledZmanimFromStorage(); // rebuilds checklist and syncs enabledZmanKeys
-    modal.style.display = 'flex';
+    const s = localStorage.getItem('alarms'); if (s) alarms = JSON.parse(s); createAlarmUI();
+    const ez = localStorage.getItem('enabledZmanim'); if (ez) { enabledZmanKeys = new Set(JSON.parse(ez)); } else { enabledZmanKeys = new Set(); for (const [k, m] of Object.entries(ZMANIM_DB)) if (m.default) enabledZmanKeys.add(k); }
+    buildZmanimChecklist(); modal.style.display = 'flex';
   }
 
   function livePreviewAdvanced() {
     if (modal.style.display !== 'flex') return;
-    
-    localStorage.weekdaySize = weekdaySizeSelect.value;
-    localStorage.showTimeExtras = showTimeExtrasSelect.value;
-    localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
-    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
-    localStorage.zmanColorPreset = zmanColorPresetSelect.value;
-    localStorage.zmanCustomColor = zmanCustomColorInput.value;
-    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
-    localStorage.layout = layoutSelect.value;
-    localStorage.weatherFmt = weatherFmtSelect.value;
-    localStorage.font = fontSelect.value;
-    
-    applyThemeAndStyle();
-    updateNextZmanDisplay();
-    updateWeatherDisplay();
-  }
-
-  function toggleAdvanced() {
-    if (advancedDiv.style.display === 'none' || advancedDiv.style.display === '') {
-      advancedDiv.style.display = 'block';
-      advBtn.textContent = '▲ Hide advanced';
-    } else {
-      advancedDiv.style.display = 'none';
-      advBtn.textContent = '⚡ Advanced settings';
-    }
-  }
-  async function toggleFullscreen() {
-    try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch(e) {}
+    localStorage.weekdaySize = weekdaySizeSelect.value; localStorage.showTimeExtras = showTimeExtrasSelect.value;
+    localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value;
+    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value; localStorage.layout = layoutSelect.value;
+    localStorage.weatherFmt = weatherFmtSelect.value; localStorage.font = fontSelect.value;
+    applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay();
   }
 
   function initializeApp() {
-    if (!localStorage.layout) localStorage.setItem('layout', 'retro');
-    if (!localStorage.weatherFmt) localStorage.setItem('weatherFmt', 'extended');
-    if (!localStorage.dateFmt) localStorage.setItem('dateFmt', 'medium');
-    if (!localStorage.font) localStorage.setItem('font', "'Inter', 'SF Mono', monospace");
-    if (!localStorage.colorPreset) localStorage.setItem('colorPreset', '#00e5ff');
-    if (!localStorage.customColor) localStorage.setItem('customColor', '#00e5ff');
-    if (!localStorage.bgPreset) localStorage.setItem('bgPreset', '#000000');
-    if (!localStorage.customBg) localStorage.setItem('customBg', '#000000');
-    if (!localStorage.weekdaySize) localStorage.setItem('weekdaySize', '1.2');
-    if (!localStorage.showTimeExtras) localStorage.setItem('showTimeExtras', 'true');
-    if (!localStorage.zmanDisplayType) localStorage.setItem('zmanDisplayType', 'time');
-    if (!localStorage.showNextZmanPrefix) localStorage.setItem('showNextZmanPrefix', 'true');
-    if (!localStorage.zmanColorPreset) localStorage.setItem('zmanColorPreset', 'theme');
-    if (!localStorage.zmanCustomColor) localStorage.setItem('zmanCustomColor', '#00e5ff');
-    if (!localStorage.showWeatherTimeline) localStorage.setItem('showWeatherTimeline', 'true');
-    
-    const storedAlarms = localStorage.getItem('alarms');
-    if (storedAlarms) alarms = JSON.parse(storedAlarms);
-
-    loadEnabledZmanimFromStorage();
-    applyThemeAndStyle();
-    updateTimeAndDate();
-    setInterval(() => updateTimeAndDate(), 1000);
-    // Weather & Zmanim refresh every 10 minutes
-    setInterval(() => { if (navigator.geolocation) navigator.geolocation.getCurrentPosition((pos) => { fetchZmanim(pos.coords.latitude, pos.coords.longitude); fetchWeather(pos.coords.latitude, pos.coords.longitude); }, () => { fetchZmanim(40.7128, -74.0060); fetchWeather(40.7128, -74.0060); }); }, 10*60000);
-    initGeolocationAndZmanim();
+    applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
+    setInterval(initGeolocationAndZmanim, 10*60000); initGeolocationAndZmanim();
   }
 
   gearBtn.addEventListener('click', openModalWithCurrentSettings);
   saveBtn.addEventListener('click', saveAndClose);
-  fullscreenBtn.addEventListener('click', toggleFullscreen);
-  advBtn.addEventListener('click', toggleAdvanced);
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-  document.body.addEventListener('click', (e) => {
-    // If alarm is active, clicking anywhere stops it
-    if (document.body.classList.contains('alarm-active')) {
-      stopAlarm();
-      return;
-    }
-
-    const isModalOpen = modal.style.display === 'flex';
-    const insidePanel = e.target.closest('.panel');
-    const isGear = e.target.id === 'gear' || e.target.closest('#gear');
-    if (isModalOpen) return;
-    if (insidePanel || isGear) return;
-    document.body.classList.toggle('hidden-ui');
-  });
-  weekdaySizeSelect.addEventListener('change', livePreviewAdvanced);
-  showTimeExtrasSelect.addEventListener('change', livePreviewAdvanced);
-  zmanDisplayTypeSelect.addEventListener('change', livePreviewAdvanced);
-  showNextZmanPrefixSelect.addEventListener('change', livePreviewAdvanced);
-  zmanColorPresetSelect.addEventListener('change', livePreviewAdvanced);
-  zmanCustomColorInput.addEventListener('input', livePreviewAdvanced);
-  fontSelect.addEventListener('change', livePreviewAdvanced);
-  layoutSelect.addEventListener('change', livePreviewAdvanced);
-  weatherFmtSelect.addEventListener('change', livePreviewAdvanced);
-  showWeatherTimelineSelect.addEventListener('change', livePreviewAdvanced);
+  advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
+  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
+  [zmanCustomColorInput, weatherCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>
 </body>

@@ -1240,7 +1240,12 @@
         }
       }, (err) => {
         console.warn("Geolocation failed or denied:", err.message);
-      }, { timeout: 10000 });
+        // If we failed and had no cache, force use defaults now
+        if (!cachedLat) {
+          fetchZmanim(defaultLat, defaultLon);
+          fetchWeather(defaultLat, defaultLon);
+        }
+      }, { timeout: 8000, enableHighAccuracy: false });
     }
   }
 
@@ -1354,11 +1359,17 @@
     } else {
       enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
-    applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
-    setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
-    setInterval(fetchYUMinyanim, 60*60000); // Hourly refresh
+    applyThemeAndStyle(); 
+    updateTimeAndDate(); 
+    
+    // Initial data load
     initGeolocationAndZmanim();
     fetchYUMinyanim();
+
+    // Set intervals
+    setInterval(updateTimeAndDate, 1000);
+    setInterval(initGeolocationAndZmanim, 15 * 60 * 1000);
+    setInterval(fetchYUMinyanim, 60 * 60 * 1000);
   }
 
   async function toggleFullscreen() {
@@ -1374,3 +1385,14 @@
 
   gearBtn.addEventListener('click', openModalWithCurrentSettings);
   saveBtn.addEventListener('click', saveAndClose);
+  document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
+  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
+  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
+  initializeApp();
+</script>
+</body>
+</html>

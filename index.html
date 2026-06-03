@@ -103,7 +103,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    font-size: 0.35em; 
+    font-size: 0.35em;
     text-align: left;
     margin: 0;
     padding: 0;
@@ -153,7 +153,7 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     grid-template-rows: 1fr 0 auto 0 1fr;
-    grid-template-areas: 
+    grid-template-areas:
       ". . ."
       ". weekday ."
       "weather timeline zmanim"
@@ -167,10 +167,10 @@
     gap: 0;
   }
   .sidebar .weekday { grid-area: weekday; transform: translateY(-3vh); font-size: min(4vw, 5vh); justify-self: center; line-height: 0; }
-  .sidebar .time-line { 
-    grid-area: timeline; 
-    font-size: min(15vw, 25vh); 
-    justify-self: center; 
+  .sidebar .time-line {
+    grid-area: timeline;
+    font-size: min(15vw, 25vh);
+    justify-self: center;
     display: flex;
     position: relative;
     align-items: center;
@@ -187,14 +187,14 @@
     font-size: 0.35em;
   }
   .sidebar #date { grid-area: date; transform: translateY(3vh); font-size: min(3.5vw, 4vh); justify-self: center; line-height: 0; }
-  .sidebar #weather { 
-    grid-area: weather; 
-    justify-self: end; 
+  .sidebar #weather {
+    grid-area: weather;
+    justify-self: end;
     margin-right: 3vw;
-    flex-direction: column; 
-    align-items: center; 
-    background: rgba(255,255,255,0.05); 
-    padding: 3vh 2vw; 
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    padding: 3vh 2vw;
     border-radius: 32px;
     font-size: min(2.5vw, 3.5vh);
     gap: 12px;
@@ -202,16 +202,16 @@
     justify-content: center;
     max-width: 25vw;
   }
-  .sidebar #nextZman { 
-    grid-area: zmanim; 
-    justify-self: start; 
+  .sidebar #nextZman {
+    grid-area: zmanim;
+    justify-self: start;
     margin-left: 3vw;
     display: flex;
-    flex-direction: column; 
-    align-items: center; 
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.05); 
-    padding: 3vh 2vw; 
+    background: rgba(255,255,255,0.05);
+    padding: 3vh 2vw;
     border-radius: 32px;
     font-size: min(2.5vw, 3.5vh);
     gap: 10px;
@@ -220,13 +220,13 @@
     text-align: center;
     max-width: 25vw;
   }
-  .sidebar .weather-timeline { 
-    grid-area: hourly; 
-    position: absolute; 
-    bottom: 2vh; 
-    left: 2vw; 
-    right: 2vw; 
-    width: auto; 
+  .sidebar .weather-timeline {
+    grid-area: hourly;
+    position: absolute;
+    bottom: 2vh;
+    left: 2vw;
+    right: 2vw;
+    width: auto;
     margin: 0;
   }
   .sidebar .weather-stack { border-left: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 8px 0 0 0; margin: 0; align-items: center; width: 100%; }
@@ -237,7 +237,7 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     grid-template-rows: auto auto auto auto;
-    grid-template-areas: 
+    grid-template-areas:
       "weekday weekday weekday"
       "weather timeline zmanim"
       "date date date"
@@ -263,23 +263,23 @@
     font-size: 0.3em;
   }
   .phone #date { grid-area: date; font-size: min(4vw, 3vh); margin-top: 0; }
-  .phone #weather { 
-    grid-area: weather; 
-    flex-direction: column; 
-    background: rgba(255,255,255,0.05); 
-    padding: 10px; 
-    border-radius: 20px; 
+  .phone #weather {
+    grid-area: weather;
+    flex-direction: column;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 20px;
     font-size: min(3vw, 2.5vh);
     max-width: 28vw;
     width: 100%;
     gap: 5px;
   }
-  .phone #nextZman { 
-    grid-area: zmanim; 
-    flex-direction: column; 
-    background: rgba(255,255,255,0.05); 
-    padding: 10px; 
-    border-radius: 20px; 
+  .phone #nextZman {
+    grid-area: zmanim;
+    flex-direction: column;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 20px;
     font-size: min(3vw, 2.5vh);
     max-width: 28vw;
     width: 100%;
@@ -297,10 +297,16 @@
     filter: grayscale(100%) brightness(1.5) sepia(1) hue-rotate(170deg) saturate(10);
   }
 
+  .weather-icon-colored {
+    color: transparent !important;
+    text-shadow: 0 0 0 var(--weather-icon-color);
+    display: inline-block;
+  }
+
   @media (max-width: 640px) {
     .sidebar#clock {
       grid-template-columns: 1fr 1fr;
-      grid-template-areas: 
+      grid-template-areas:
         "weekday weekday"
         "timeline timeline"
         "date date"
@@ -530,11 +536,14 @@
           <option value="words">🌡️ 72°F · Clear sky</option>
           <option value="numbers">🌤️ 72°F</option>
         </select>
-        <label>🎨 Weather Icon</label>
+        <label>🎨 Weather Icon Color</label>
         <select id="weatherIconColor">
           <option value="default">Natural Colors</option>
-          <option value="theme">Theme Match</option>
+          <option value="theme">Main Theme Color</option>
+          <option value="weather">Weather Text Color</option>
+          <option value="custom">Custom Color</option>
         </select>
+        <input type="color" id="weatherIconCustomColor" value="#00e5ff" style="display:none;">
         <label>📈 Weather Timeline Bar</label>
         <select id="showWeatherTimeline"><option value="true">Show (Hourly)</option><option value="false">Hide</option></select>
         <label>🎨 Weather Text Color</label>
@@ -580,8 +589,9 @@
   let currentZmanimData = {}, enabledZmanKeys = new Set(), alarms = [], activeAlarmTimeout = null, lastFetchedDate = "";
   let hourlyPrecipitation = [];
   let zmanimError = null;
+  let lastWeatherData = null;
 
-  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor');
+  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor');
 
   function getWeatherIcon(code, hour = -1) {
     let isNight = false;
@@ -609,10 +619,13 @@
     else if (code >= 3) icon = "☁️";
     else icon = isNight ? '🌙' : (code >= 1 ? "🌤️" : "☀️");
 
-    const useTheme = localStorage.weatherIconColor === 'theme';
+    const iconColorMode = localStorage.weatherIconColor || 'default';
     let classes = [];
-    if (useTheme) classes.push('theme-icon-filter');
-    if (isNight && icon === '🌙') classes.push('night-moon');
+    if (iconColorMode !== 'default') {
+      classes.push('weather-icon-colored');
+    } else {
+      if (isNight && icon === '🌙') classes.push('night-moon');
+    }
     
     return `<span class="${classes.join(' ')}">${icon}</span>`;
   }
@@ -666,7 +679,17 @@
     document.documentElement.style.setProperty('--fg', fg);
     document.documentElement.style.setProperty('--bg', bg);
     document.documentElement.style.setProperty('--zman-fg', (localStorage.zmanColorPreset === 'custom') ? (localStorage.zmanCustomColor || '#00e5ff') : fg);
-    document.documentElement.style.setProperty('--weather-fg', (localStorage.weatherColorPreset === 'custom') ? (localStorage.weatherCustomColor || '#00e5ff') : fg);
+    const weatherFg = (localStorage.weatherColorPreset === 'custom') ? (localStorage.weatherCustomColor || '#00e5ff') : fg;
+    document.documentElement.style.setProperty('--weather-fg', weatherFg);
+    
+    // Set Weather Icon Color
+    let iconColor = 'inherit';
+    const iconColorMode = localStorage.weatherIconColor || 'default';
+    if (iconColorMode === 'theme') iconColor = fg;
+    else if (iconColorMode === 'weather') iconColor = weatherFg;
+    else if (iconColorMode === 'custom') iconColor = localStorage.weatherIconCustomColor || '#00e5ff';
+    document.documentElement.style.setProperty('--weather-icon-color', iconColor);
+
     clockContainer.className = localStorage.layout || 'sidebar';
     document.body.style.fontFamily = localStorage.font || "'Inter', 'SF Mono', monospace";
     document.documentElement.style.setProperty('--weekday-scale', localStorage.weekdaySize || "1.2");
@@ -744,6 +767,7 @@
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
     weatherTimeline.style.display = (localStorage.showWeatherTimeline === 'true') ? 'block' : 'none';
+    if (lastWeatherData) updateWeatherTimeline(lastWeatherData);
     
     if (isSidebar || isPhone) {
       weatherEl.innerHTML = `
@@ -766,6 +790,7 @@
     try {
       const resp = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weathercode,precipitation&temperature_unit=fahrenheit&timezone=auto`);
       const data = await resp.json();
+      lastWeatherData = data;
       if (data.current) {
         lastTemp = data.current.temperature_2m; lastCode = data.current.weathercode;
         if (data.daily) { todayH = data.daily.temperature_2m_max[0]; todayL = data.daily.temperature_2m_min[0]; }
@@ -832,10 +857,10 @@
 
       zmanimError = null;
       updateNextZmanDisplay();
-    } catch (e) { 
+    } catch (e) {
       console.error("Local Zmanim calculation failed:", e);
       zmanimError = "⚠️ Calculation error";
-      nextZmanEl.textContent = zmanimError; 
+      nextZmanEl.textContent = zmanimError;
     }
   }
 
@@ -844,9 +869,9 @@
       nextZmanEl.textContent = zmanimError;
       return;
     }
-    if (!Object.keys(currentZmanimData).length) { 
-      if (!isFetchingZmanim) nextZmanEl.textContent = "📅 Loading..."; 
-      return; 
+    if (!Object.keys(currentZmanimData).length) {
+      if (!isFetchingZmanim) nextZmanEl.textContent = "📅 Loading...";
+      return;
     }
     const now = new Date();
     const layout = localStorage.layout || 'sidebar';
@@ -941,23 +966,23 @@
     c.appendChild(toggleBtn);
 
     for (const [k, m] of Object.entries(ZMANIM_DB)) {
-      const l = document.createElement('label'); 
+      const l = document.createElement('label');
       l.className = 'zman-check';
       
-      const cb = document.createElement('input'); 
-      cb.type = 'checkbox'; 
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
       cb.checked = enabledZmanKeys.has(k);
-      cb.addEventListener('change', e => { 
-        if (e.target.checked) enabledZmanKeys.add(k); 
-        else enabledZmanKeys.delete(k); 
-        localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys])); 
-        updateNextZmanDisplay(); 
+      cb.addEventListener('change', e => {
+        if (e.target.checked) enabledZmanKeys.add(k);
+        else enabledZmanKeys.delete(k);
+        localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
+        updateNextZmanDisplay();
       });
       
       const s = document.createElement('span');
       s.textContent = `${m.he} (${m.display})`;
       
-      l.appendChild(cb); 
+      l.appendChild(cb);
       l.appendChild(s);
       c.appendChild(l);
     }
@@ -970,6 +995,7 @@
     localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value; localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
     localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value; localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
     localStorage.weatherIconColor = weatherIconColorSelect.value;
+    localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
     localStorage.setItem('alarms', JSON.stringify(alarms));
     applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); modal.style.display = 'none';
   }
@@ -985,13 +1011,16 @@
     weatherColorPresetSelect.value = localStorage.weatherColorPreset || 'theme'; weatherCustomColorInput.value = localStorage.weatherCustomColor || '#00e5ff';
     showWeatherTimelineSelect.value = localStorage.showWeatherTimeline || 'true';
     weatherIconColorSelect.value = localStorage.weatherIconColor || 'default';
+    weatherIconCustomColorInput.value = localStorage.weatherIconCustomColor || '#00e5ff';
+    weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
+    
     const s = localStorage.getItem('alarms'); if (s) alarms = JSON.parse(s); createAlarmUI();
-    const ez = localStorage.getItem('enabledZmanim'); 
-    if (ez) { 
+    const ez = localStorage.getItem('enabledZmanim');
+    if (ez) {
       const parsed = JSON.parse(ez);
       enabledZmanKeys = new Set(parsed.length > 0 ? parsed : Object.keys(ZMANIM_DB));
-    } else { 
-      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB)); 
+    } else {
+      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
     buildZmanimChecklist(); modal.style.display = 'flex';
   }
@@ -1004,16 +1033,18 @@
     localStorage.showWeatherTimeline = showWeatherTimelineSelect.value; localStorage.layout = layoutSelect.value;
     localStorage.weatherFmt = weatherFmtSelect.value; localStorage.font = fontSelect.value;
     localStorage.weatherIconColor = weatherIconColorSelect.value;
+    localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
+    weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
     applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay();
   }
 
   function initializeApp() {
     const ez = localStorage.getItem('enabledZmanim');
-    if (ez) { 
+    if (ez) {
       const parsed = JSON.parse(ez);
       enabledZmanKeys = new Set(parsed.length > 0 ? parsed : Object.keys(ZMANIM_DB));
-    } else { 
-      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB)); 
+    } else {
+      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
     applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
     setInterval(initGeolocationAndZmanim, 10*60000); initGeolocationAndZmanim();
@@ -1038,7 +1069,7 @@
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
   [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
-  [zmanCustomColorInput, weatherCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
+  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>
 </body>

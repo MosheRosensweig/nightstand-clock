@@ -833,7 +833,8 @@
     else if (iconColorMode === 'custom') iconColor = localStorage.weatherIconCustomColor || '#00e5ff';
     document.documentElement.style.setProperty('--weather-icon-color', iconColor);
 
-    clockContainer.className = localStorage.layout || 'sidebar';
+    const defaultLayout = (window.innerWidth <= 1024) ? 'split' : 'retro';
+    clockContainer.className = localStorage.layout || defaultLayout;
     document.body.style.fontFamily = localStorage.font || "'Inter', 'SF Mono', monospace";
     document.documentElement.style.setProperty('--weekday-scale', localStorage.weekdaySize || "1.2");
     document.querySelector('.time-extras').classList.toggle('hide-extras', localStorage.showTimeExtras === 'false');
@@ -1022,10 +1023,15 @@
 
   function updateNextZmanDisplay() {
     const now = new Date();
-    const layout = localStorage.layout || 'sidebar';
+    const layout = localStorage.layout || (window.innerWidth <= 1024 ? 'split' : 'retro');
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
     const isSplit = layout === 'split';
+
+    if (!Object.keys(currentZmanimData).length && minyanimData.length === 0 && !isFetchingMinyanim) {
+      nextZmanEl.textContent = "📅 Preparing Zmanim...";
+      return;
+    }
 
     if (zmanimError && (!localStorage.showYUMinyanim || localStorage.showYUMinyanim !== 'true')) {
       nextZmanEl.textContent = zmanimError;
@@ -1153,25 +1159,31 @@
   }
 
   function initGeolocationAndZmanim() {
+    const defaultLat = 40.7128, defaultLon = -74.0060; // NY
     const cachedLat = localStorage.getItem('lastLat');
     const cachedLon = localStorage.getItem('lastLon');
-    if (cachedLat && cachedLon) {
-      fetchZmanim(cachedLat, cachedLon);
-      fetchWeather(cachedLat, cachedLon);
-    }
 
+    // 1. Immediately start with something so we aren't "stuck"
+    const startLat = cachedLat ? parseFloat(cachedLat) : defaultLat;
+    const startLon = cachedLon ? parseFloat(cachedLon) : defaultLon;
+    
+    fetchZmanim(startLat, startLon);
+    fetchWeather(startLat, startLon);
+
+    // 2. Try to get actual location in the background
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(p => {
         const { latitude, longitude } = p.coords;
-        localStorage.setItem('lastLat', latitude);
-        localStorage.setItem('lastLon', longitude);
-        fetchZmanim(latitude, longitude);
-        fetchWeather(latitude, longitude);
-      }, () => {
-        if (!cachedLat) { fetchZmanim(40.7128, -74.0060); fetchWeather(40.7128, -74.0060); }
-      });
-    } else if (!cachedLat) {
-      fetchZmanim(40.7128, -74.0060); fetchWeather(40.7128, -74.0060);
+        // Only update if it's significantly different to avoid unnecessary flashes
+        if (!cachedLat || Math.abs(parseFloat(cachedLat) - latitude) > 0.01) {
+          localStorage.setItem('lastLat', latitude);
+          localStorage.setItem('lastLon', longitude);
+          fetchZmanim(latitude, longitude);
+          fetchWeather(latitude, longitude);
+        }
+      }, (err) => {
+        console.warn("Geolocation failed or denied:", err.message);
+      }, { timeout: 10000 });
     }
   }
 
@@ -1234,7 +1246,9 @@
   }
 
   function openModalWithCurrentSettings() {
-    layoutSelect.value = localStorage.layout || 'sidebar'; weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
+    const defaultLayout = (window.innerWidth <= 1024) ? 'split' : 'retro';
+    layoutSelect.value = localStorage.layout || defaultLayout; 
+    weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
     dateFmtSelect.value = localStorage.dateFmt || 'medium'; fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
     colorPreset.value = localStorage.colorPreset || '#00e5ff'; customColor.value = localStorage.customColor || '#00e5ff';
     bgPreset.value = localStorage.bgPreset || '#000000'; customBg.value = localStorage.customBg || '#000000';

@@ -140,12 +140,15 @@
   .minimal .main-hour-minute { font-weight: 300; }
   .split .time-line { font-size: 13vw; }
   .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday {
-    font-weight: 500;
-    background: linear-gradient(135deg, var(--fg) 30%, #aaffff);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    text-shadow: none;
+    font-weight: 600;
+    color: var(--fg);
+    text-shadow: 0 0 12px var(--fg), 0 0 24px rgba(0, 229, 255, 0.4);
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+  }
+  .split .time-extras {
+    text-shadow: 0 0 8px var(--fg);
   }
   
   /* Sidebar Hub Layout */
@@ -509,7 +512,7 @@
       <option value="retro">Retro LED</option>
       <option value="simple">Simple & Clean</option>
       <option value="minimal">Minimal pure</option>
-      <option value="split">Split Chroma</option>
+      <option value="split">Mobile Landscape</option>
       <option value="sidebar">Sidebar Hub (Desktop)</option>
       <option value="phone">Phone View</option>
     </select>
@@ -1022,6 +1025,7 @@
     const layout = localStorage.layout || 'sidebar';
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
+    const isSplit = layout === 'split';
 
     if (zmanimError && (!localStorage.showYUMinyanim || localStorage.showYUMinyanim !== 'true')) {
       nextZmanEl.textContent = zmanimError;
@@ -1046,7 +1050,7 @@
       
       // Column 1: Zmanim
       html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
-      html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕯️ Zmanim</div>`;
+      if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕯️ Zmanim</div>`;
       for (let i = 0; i < rowCount; i++) {
         const key = upcomingZmanim[i];
         if (key) {
@@ -1066,7 +1070,7 @@
       
       // Column 2: Minyanim
       html += `<div style="display: flex; flex-direction: column; gap: 4px; overflow: hidden;">`;
-      html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕍 YU Minyanim</div>`;
+      if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕍 YU Minyanim</div>`;
       if (upcomingMinyanim.length > 0) {
         for (let i = 0; i < rowCount; i++) {
           const item = upcomingMinyanim[i];
@@ -1300,7 +1304,3 @@
   gearBtn.addEventListener('click', openModalWithCurrentSettings);
   saveBtn.addEventListener('click', saveAndClose);
   document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
-  fullscreenBtn.addEventListener('click', toggleFullscreen);
-  advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
-  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
-  document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });

@@ -208,17 +208,18 @@
     margin-left: 3vw;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     background: rgba(255,255,255,0.05);
     padding: 3vh 2vw;
     border-radius: 32px;
-    font-size: min(2.5vw, 3.5vh);
-    gap: 10px;
+    font-size: min(2vw, 3vh);
+    gap: 8px;
     height: auto;
     border: none;
-    text-align: center;
+    text-align: left;
     max-width: 25vw;
+    overflow: hidden;
   }
   .sidebar .weather-timeline {
     grid-area: hourly;
@@ -280,13 +281,14 @@
     background: rgba(255,255,255,0.05);
     padding: 10px;
     border-radius: 20px;
-    font-size: min(3vw, 2.5vh);
+    font-size: min(2.5vw, 2.2vh);
     max-width: 28vw;
     width: 100%;
-    gap: 5px;
+    gap: 4px;
     border: none;
     text-align: left;
     align-items: flex-start;
+    overflow: hidden;
   }
   .phone .weather-timeline { grid-area: hourly; display: block; margin: 0; width: 100%; }
   .phone .weather-stack { border: none; padding: 0; margin: 0; }
@@ -315,7 +317,7 @@
       font-size: 3.5vw;
       gap: 10px;
     }
-    .sidebar #weather, .sidebar #nextZman { font-size: 3.8vw; padding: 15px; height: auto; }
+    .sidebar #weather, .sidebar #nextZman { font-size: 3.5vw; padding: 12px; height: auto; }
     .sidebar .time-line { font-size: 18vw; margin: 0; }
   }
   
@@ -400,7 +402,7 @@
 
   label { display: block; margin-top: 18px; margin-bottom: 8px; font-weight: 500; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #bbd4ff; }
 
-  select, input[type="color"] { width: 100%; padding: 12px 16px; background: rgba(20, 25, 40, 0.9); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 60px; color: white; cursor: pointer; transition: var(--transition-smooth); }
+  select, input[type="color"], input[type="number"] { width: 100%; padding: 12px 16px; background: rgba(20, 25, 40, 0.9); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 60px; color: white; cursor: pointer; transition: var(--transition-smooth); }
 
   .zmanim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; background: rgba(20, 25, 40, 0.5); border-radius: 28px; padding: 14px; }
   .zman-check { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 0.9rem; }
@@ -449,6 +451,18 @@
 
   @keyframes alarmFlash { 0%, 49% { background: #000000; color: #ffffff; } 50%, 100% { background: #ffffff; color: #000000; } }
   .alarm-active { animation: alarmFlash var(--flash-speed, 0.5s) infinite; }
+
+  @keyframes redWave {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .urgent-zman {
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.3), transparent) !important;
+    background-size: 200% 100% !important;
+    animation: redWave 4s infinite linear !important;
+    border: 1px solid #ff3b30 !important;
+    box-shadow: 0 0 15px rgba(255, 59, 48, 0.4) !important;
+  }
 
   @media (max-width: 640px) {
     .date { font-size: 6vw; }
@@ -522,6 +536,17 @@
         <label>🎨 Zman Text Color</label>
         <select id="zmanColorPreset"><option value="theme">Same as theme</option><option value="custom">Custom Color</option></select>
         <input type="color" id="zmanCustomColor" value="#00e5ff">
+        
+        <label>🕍 YU Minyanim</label>
+        <div class="zmanim-grid" style="grid-template-columns: 1fr;">
+          <label class="zman-check">
+            <input type="checkbox" id="showYUMinyanim"> <span>Enable YU Minyanim Lookup</span>
+          </label>
+        </div>
+        <label>🔢 Max Minyanim to show</label>
+        <input type="number" id="minyanCount" min="1" max="15" value="5">
+        <label>🚨 Urgency Threshold (minutes)</label>
+        <input type="number" id="urgencyThreshold" min="1" max="60" value="15">
       </div>
 
       <div id="tab-alarms" class="tab-content">
@@ -587,11 +612,123 @@
   };
 
   let currentZmanimData = {}, enabledZmanKeys = new Set(), alarms = [], activeAlarmTimeout = null, lastFetchedDate = "";
+  let minyanimData = [], lastMinyanFetch = 0, isFetchingMinyanim = false;
   let hourlyPrecipitation = [];
   let zmanimError = null;
   let lastWeatherData = null;
 
   const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor');
+
+  async function fetchYUMinyanim() {
+    if (localStorage.showYUMinyanim !== 'true') {
+      minyanimData = [];
+      updateNextZmanDisplay();
+      return;
+    }
+    
+    isFetchingMinyanim = true;
+    updateNextZmanDisplay();
+
+    const urls = [
+      'https://yuzmanim.com/',
+      'https://www.yuzmanim.com/shacharis',
+      'https://www.yuzmanim.com/mincha',
+      'https://www.yuzmanim.com/maariv'
+    ];
+    
+    const now = new Date();
+    // Broad regex to capture prayer, location and time across different YU page formats
+    const regex = /(Shacharis|Mincha|Maariv|Shacharit|Arvit|Mincha Gedolah|Mincha Gedola|Plag HaMincha)\s+([\s\S]{1,150}?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))/gi;
+    let allFound = [];
+
+    try {
+      const fetchPromises = urls.map(async (url) => {
+        try {
+          // Try AllOrigins first
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          let resp = await fetch(proxyUrl);
+          let html = "";
+          if (resp.ok) {
+            const data = await resp.json();
+            html = data.contents || "";
+          } else {
+            // Fallback proxy
+            const fallbackUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+            resp = await fetch(fallbackUrl);
+            if (resp.ok) html = await resp.text();
+          }
+          
+          if (!html) return "";
+          // Strip tags and normalize spaces
+          return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
+        } catch (e) {
+          console.error(`Failed to fetch YU Minyanim from ${url}:`, e);
+          return "";
+        }
+      });
+
+      const results = await Promise.all(fetchPromises);
+      
+      results.forEach(text => {
+        if (!text) return;
+        let match;
+        regex.lastIndex = 0;
+        while ((match = regex.exec(text)) !== null) {
+          const type = match[1].trim();
+          const location = match[2].trim();
+          const timeStr = match[3].trim().toUpperCase();
+          const parsedTime = parseTimeString(timeStr);
+          
+          if (parsedTime && parsedTime > now && location.length > 2 && !location.includes("----------------")) {
+            const exists = allFound.some(f => 
+              f.type === type && 
+              f.location === location && 
+              Math.abs(f.parsedTime.getTime() - parsedTime.getTime()) < 60000
+            );
+            if (!exists) {
+              allFound.push({ type, location, timeStr, parsedTime });
+            }
+          }
+        }
+      });
+      
+      allFound.sort((a, b) => a.parsedTime - b.parsedTime);
+      minyanimData = allFound;
+      lastMinyanFetch = Date.now();
+      isFetchingMinyanim = false;
+      updateNextZmanDisplay();
+    } catch (e) {
+      console.error("Critical error in fetchYUMinyanim:", e);
+      isFetchingMinyanim = false;
+      updateNextZmanDisplay();
+    }
+  }
+
+  function parseTimeString(timeStr) {
+    const now = new Date();
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!match) return null;
+    let [_, hours, minutes, modifier] = match;
+    hours = parseInt(hours, 10);
+    minutes = parseInt(minutes, 10);
+    if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
+    if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
+    
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+    // If the parsed time is in the past, assume it's for the next day
+    if (d < now) {
+      d.setDate(d.getDate() + 1);
+    }
+    return d;
+  }
+
+  function isUrgent(date) {
+    if (!date) return false;
+    const now = new Date();
+    const diff = (date - now) / 60000;
+    const threshold = parseInt(localStorage.urgencyThreshold || 15);
+    return diff >= 0 && diff <= threshold;
+  }
 
   function getWeatherIcon(code, hour = -1) {
     let isNight = false;
@@ -708,6 +845,19 @@
     secondsSmallSpan.textContent = now.getSeconds().toString().padStart(2, '0');
     ampmSpan.textContent = ampm;
     weekdayEl.textContent = now.toLocaleDateString([], { weekday: 'long' }).toUpperCase();
+    
+    // Shabbat Mode Check (using pre-calculated currentZmanimData)
+    try {
+      const day = now.getDay(); // 5=Fri, 6=Sat
+      if (day === 5 && currentZmanimData.candleLighting && now >= currentZmanimData.candleLighting) {
+        weekdayEl.textContent = "🕯️ שבת קודש 🕯️";
+      } else if (day === 6 && currentZmanimData.tzeit85deg && now < currentZmanimData.tzeit85deg) {
+        weekdayEl.textContent = "🕯️ שבת קודש 🕯️";
+      }
+    } catch(e) {
+      console.warn("Shabbat mode check failed:", e);
+    }
+
     const df = localStorage.dateFmt || 'medium';
     dateEl.textContent = df === 'numeric' ? now.toLocaleDateString() : (df === 'long' ? now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }));
     updateNextZmanDisplay();
@@ -865,61 +1015,134 @@
   }
 
   function updateNextZmanDisplay() {
-    if (zmanimError) {
-      nextZmanEl.textContent = zmanimError;
-      return;
-    }
-    if (!Object.keys(currentZmanimData).length) {
-      if (!isFetchingZmanim) nextZmanEl.textContent = "📅 Loading...";
-      return;
-    }
     const now = new Date();
     const layout = localStorage.layout || 'sidebar';
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
+
+    if (zmanimError && (!localStorage.showYUMinyanim || localStorage.showYUMinyanim !== 'true')) {
+      nextZmanEl.textContent = zmanimError;
+      return;
+    }
+
+    const mLimit = parseInt(localStorage.minyanCount) || 5;
     const sortedKeys = Object.keys(currentZmanimData)
       .filter(k => currentZmanimData[k] !== null)
       .sort((a,b) => currentZmanimData[a] - currentZmanimData[b]);
       
-    const upcomingZmanim = sortedKeys.filter(k => enabledZmanKeys.has(k) && currentZmanimData[k] > now);
+    const upcomingZmanim = sortedKeys.filter(k => enabledZmanKeys.has(k) && currentZmanimData[k] > now).slice(0, mLimit);
+    const upcomingMinyanim = (localStorage.showYUMinyanim === 'true') ? minyanimData.slice(0, mLimit) : [];
 
-    if (upcomingZmanim.length > 0) {
+    if (localStorage.showYUMinyanim === 'true' && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
+      const rowCount = Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
+      let html = `<div style="display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: 15px; align-items: start; min-width: 320px;">`;
+      
+      // Column 1: Zmanim
+      html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
+      html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕯️ Zmanim</div>`;
+      for (let i = 0; i < rowCount; i++) {
+        const key = upcomingZmanim[i];
+        if (key) {
+          const time = currentZmanimData[key];
+          const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+          const urgentClass = isUrgent(time) ? 'urgent-zman' : '';
+          html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; font-size: 0.8em;">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
+        } else if (i < upcomingMinyanim.length) {
+          html += `<div style="padding: 3px 8px; opacity: 0; font-size: 0.8em;">--</div>`;
+        }
+      }
+      if (upcomingZmanim.length === 0) html += `<div style="padding: 3px 8px; font-size: 0.7em; opacity: 0.6;">No more zmanim</div>`;
+      html += `</div>`;
+      
+      // Separator
+      html += `<div style="background: rgba(255,255,255,0.1); align-self: stretch; margin: 5px 0;"></div>`;
+      
+      // Column 2: Minyanim
+      html += `<div style="display: flex; flex-direction: column; gap: 4px; overflow: hidden;">`;
+      html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕍 YU Minyanim</div>`;
+      if (upcomingMinyanim.length > 0) {
+        for (let i = 0; i < rowCount; i++) {
+          const item = upcomingMinyanim[i];
+          if (item) {
+            const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            const urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
+            // Added location here
+            html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75em;" title="${item.type}: ${item.location}">${timeStr}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
+          } else if (i < upcomingZmanim.length) {
+            html += `<div style="padding: 3px 8px; opacity: 0; font-size: 0.75em;">--</div>`;
+          }
+        }
+      } else {
+        let msg = "No upcoming Minyanim found";
+        if (isFetchingMinyanim) {
+          msg = "Fetching schedule (Today & Tomorrow)...";
+        } else if (lastMinyanFetch > 0) {
+          msg = "None found for today or tomorrow";
+        }
+        html += `<div style="padding: 3px 8px; font-size: 0.7em; opacity: 0.6; font-style: italic;">${msg}</div>`;
+      }
+      html += `</div>`;
+      
+      html += `</div>`;
+      
+      nextZmanEl.innerHTML = html;
+      nextZmanEl.style.display = "inline-block";
+      nextZmanEl.style.background = "rgba(0, 0, 0, 0.45)";
+      nextZmanEl.style.backdropFilter = "blur(12px)";
+      nextZmanEl.style.border = "1px solid rgba(0, 229, 255, 0.25)";
+      nextZmanEl.style.padding = "14px 20px";
+      nextZmanEl.style.borderRadius = "24px";
+      nextZmanEl.style.width = "auto";
+      nextZmanEl.style.maxWidth = "95vw";
+      nextZmanEl.style.textAlign = "left";
+    } else if (upcomingZmanim.length > 0) {
+      // Single list fallback (if YU disabled or no minyanim found)
+      const item = upcomingZmanim[0];
+      const time = currentZmanimData[item];
+      nextZmanEl.classList.toggle('urgent-zman', isUrgent(time));
+
       if (isSidebar || isPhone) {
         let html = "";
         const count = isPhone ? 4 : 6;
-        upcomingZmanim.slice(0, count).forEach(k => {
-          const m = ZMANIM_DB[k];
-          const timeStr = currentZmanimData[k].toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-          html += `<div>${timeStr}: ${m.he}</div>`;
+        upcomingZmanim.slice(0, count).forEach(key => {
+          const time = currentZmanimData[key];
+          const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+          const urgentClass = isUrgent(time) ? 'urgent-zman' : '';
+          html += `<div class="${urgentClass}" style="padding: 4px 8px; border-radius: 8px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
         });
         nextZmanEl.innerHTML = html;
+        nextZmanEl.style.display = "flex";
+        nextZmanEl.style.flexDirection = "column";
         nextZmanEl.style.alignItems = "flex-start";
         nextZmanEl.style.textAlign = "left";
       } else {
-        const upK = upcomingZmanim[0];
-        const up = currentZmanimData[upK];
-        const diff = up - now;
+        const diff = time - now;
         const h_cd = Math.floor(diff/3600000);
         const m_cd = Math.floor((diff%3600000)/60000);
         const s_cd = Math.floor((diff%60000)/1000);
         
-        const m = ZMANIM_DB[upK], dt = localStorage.zmanDisplayType || 'time', p = (localStorage.showNextZmanPrefix !== 'false') ? "Next Zman: " : "";
-        const txt = dt === 'countdown' ? `${p}${m.he} in ${h_cd}h ${m_cd}m ${s_cd}s` : `${p}${m.he} at ${up.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
-        nextZmanEl.innerHTML = `${m.icon} ${txt}`;
-        nextZmanEl.style.alignItems = "center";
+        const dt = localStorage.zmanDisplayType || 'time', p = (localStorage.showNextZmanPrefix !== 'false') ? "Next: " : "";
+        const txt = dt === 'countdown' ? `${p}${ZMANIM_DB[item].he} in ${h_cd}h ${m_cd}m ${s_cd}s` : `${p}${ZMANIM_DB[item].he} at ${time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
+        nextZmanEl.innerHTML = `${ZMANIM_DB[item].icon} ${txt}`;
+        nextZmanEl.style.display = "inline-block";
+        nextZmanEl.style.background = "rgba(0, 150, 200, 0.2)";
+        nextZmanEl.style.padding = "10px 28px";
+        nextZmanEl.style.border = "1px solid rgba(0, 229, 255, 0.3)";
+        nextZmanEl.style.borderRadius = "60px";
         nextZmanEl.style.textAlign = "center";
       }
     } else {
       const tom = new Date(); tom.setDate(now.getDate()+1);
       const isDataForTomorrow = Object.values(currentZmanimData).some(d => d && d.toDateString() === tom.toDateString());
       
-      if (!isDataForTomorrow) {
+      if (!isDataForTomorrow && Object.keys(currentZmanimData).length > 0) {
         nextZmanEl.textContent = "🌙 Fetching tomorrow...";
         const lat = localStorage.getItem('lastLat') || 40.7128;
         const lon = localStorage.getItem('lastLon') || -74.0060;
         fetchZmanim(lat, lon, tom);
       } else {
         nextZmanEl.textContent = "🌙 End of today's zmanim";
+        nextZmanEl.style.display = "inline-block";
       }
     }
   }
@@ -997,7 +1220,12 @@
     localStorage.weatherIconColor = weatherIconColorSelect.value;
     localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
     localStorage.setItem('alarms', JSON.stringify(alarms));
-    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); modal.style.display = 'none';
+    
+    localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
+    localStorage.minyanCount = document.getElementById('minyanCount').value;
+    localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
+    
+    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); fetchYUMinyanim(); modal.style.display = 'none';
   }
 
   function openModalWithCurrentSettings() {
@@ -1014,6 +1242,10 @@
     weatherIconCustomColorInput.value = localStorage.weatherIconCustomColor || '#00e5ff';
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
     
+    document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
+    document.getElementById('minyanCount').value = localStorage.minyanCount || 5;
+    document.getElementById('urgencyThreshold').value = localStorage.urgencyThreshold || 15;
+
     const s = localStorage.getItem('alarms'); if (s) alarms = JSON.parse(s); createAlarmUI();
     const ez = localStorage.getItem('enabledZmanim');
     if (ez) {
@@ -1047,7 +1279,10 @@
       enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
     applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
-    setInterval(initGeolocationAndZmanim, 10*60000); initGeolocationAndZmanim();
+    setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
+    setInterval(fetchYUMinyanim, 60*60000); // Hourly refresh
+    initGeolocationAndZmanim();
+    fetchYUMinyanim();
   }
 
   async function toggleFullscreen() {

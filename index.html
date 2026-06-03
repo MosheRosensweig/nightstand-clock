@@ -1047,15 +1047,18 @@
     const upcomingMinyanim = (localStorage.showYUMinyanim === 'true') ? minyanimData.slice(0, mLimit) : [];
 
     if (localStorage.showYUMinyanim === 'true' && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
-      const rowCount = Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
-      const gridGap = isPhone ? "8px" : "15px";
-      const minWidth = isPhone ? "90vw" : "320px";
-      const fontSize = isPhone ? "0.7em" : "0.8em";
+      // For split view, force a compact row count (max 3)
+      const maxRows = isSplit ? 3 : Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
+      const rowCount = Math.min(maxRows, mLimit);
+      
+      const gridGap = isPhone || isSplit ? "8px" : "15px";
+      const minWidth = isPhone ? "90vw" : (isSplit ? "350px" : "320px");
+      const fontSize = isPhone || isSplit ? "0.7em" : "0.8em";
       
       let html = `<div style="display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: ${gridGap}; align-items: start; min-width: ${minWidth};">`;
       
       // Column 1: Zmanim
-      html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
+      html += `<div style="display: flex; flex-direction: column; gap: 2px;">`;
       if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕯️ Zmanim</div>`;
       for (let i = 0; i < rowCount; i++) {
         const key = upcomingZmanim[i];
@@ -1063,19 +1066,19 @@
           const time = currentZmanimData[key];
           const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
           const urgentClass = isUrgent(time) ? 'urgent-zman' : '';
-          html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
-        } else if (i < upcomingMinyanim.length) {
-          html += `<div style="padding: 3px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
+          html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
+        } else if (i < upcomingMinyanim.length && i < rowCount) {
+          html += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
         }
       }
-      if (upcomingZmanim.length === 0) html += `<div style="padding: 3px 8px; font-size: 0.7em; opacity: 0.6;">No more zmanim</div>`;
+      if (upcomingZmanim.length === 0) html += `<div style="padding: 2px 8px; font-size: 0.7em; opacity: 0.6;">No more zmanim</div>`;
       html += `</div>`;
       
       // Separator
-      html += `<div style="background: rgba(255,255,255,0.1); align-self: stretch; margin: 5px 0;"></div>`;
+      html += `<div style="background: rgba(255,255,255,0.1); align-self: stretch; margin: 2px 0;"></div>`;
       
       // Column 2: Minyanim
-      html += `<div style="display: flex; flex-direction: column; gap: 4px; overflow: hidden;">`;
+      html += `<div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden;">`;
       if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕍 YU Minyanim</div>`;
       if (upcomingMinyanim.length > 0) {
         for (let i = 0; i < rowCount; i++) {
@@ -1083,14 +1086,14 @@
           if (item) {
             const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
             const urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
-            html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fontSize};" title="${item.type}: ${item.location}">${timeStr}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
-          } else if (i < upcomingZmanim.length) {
-            html += `<div style="padding: 3px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
+            html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fontSize};" title="${item.type}: ${item.location}">${timeStr}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
+          } else if (i < upcomingZmanim.length && i < rowCount) {
+            html += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
           }
         }
       } else {
         const msg = lastMinyanFetch === 0 ? "Loading schedule..." : "No upcoming Minyanim found today";
-        html += `<div style="padding: 3px 8px; font-size: 0.7em; opacity: 0.6; font-style: italic;">${msg}</div>`;
+        html += `<div style="padding: 2px 8px; font-size: 0.7em; opacity: 0.6; font-style: italic;">${msg}</div>`;
       }
       html += `</div>`;
       
@@ -1101,7 +1104,7 @@
       nextZmanEl.style.background = "rgba(0, 0, 0, 0.45)";
       nextZmanEl.style.backdropFilter = "blur(12px)";
       nextZmanEl.style.border = "1px solid rgba(0, 229, 255, 0.25)";
-      nextZmanEl.style.padding = "14px 20px";
+      nextZmanEl.style.padding = isSplit ? "10px 16px" : "14px 20px";
       nextZmanEl.style.borderRadius = "24px";
       nextZmanEl.style.width = "auto";
       nextZmanEl.style.maxWidth = "95vw";

@@ -544,7 +544,7 @@
           </label>
         </div>
         <label>🔢 Max Minyanim to show</label>
-        <input type="number" id="minyanCount" min="1" max="15" value="5">
+        <input type="number" id="minyanCount" min="1" max="15" value="3">
         <label>🚨 Urgency Threshold (minutes)</label>
         <input type="number" id="urgencyThreshold" min="1" max="60" value="15">
       </div>
@@ -680,9 +680,9 @@
           const parsedTime = parseTimeString(timeStr);
           
           if (parsedTime && parsedTime > now && location.length > 2 && !location.includes("----------------")) {
-            const exists = allFound.some(f => 
-              f.type === type && 
-              f.location === location && 
+            const exists = allFound.some(f =>
+              f.type === type &&
+              f.location === location &&
               Math.abs(f.parsedTime.getTime() - parsedTime.getTime()) < 60000
             );
             if (!exists) {
@@ -1025,7 +1025,7 @@
       return;
     }
 
-    const mLimit = parseInt(localStorage.minyanCount) || 5;
+    const mLimit = parseInt(localStorage.minyanCount) || 3;
     const sortedKeys = Object.keys(currentZmanimData)
       .filter(k => currentZmanimData[k] !== null)
       .sort((a,b) => currentZmanimData[a] - currentZmanimData[b]);
@@ -1073,12 +1073,7 @@
           }
         }
       } else {
-        let msg = "No upcoming Minyanim found";
-        if (isFetchingMinyanim) {
-          msg = "Fetching schedule (Today & Tomorrow)...";
-        } else if (lastMinyanFetch > 0) {
-          msg = "None found for today or tomorrow";
-        }
+        const msg = lastMinyanFetch === 0 ? "Loading schedule..." : "No upcoming Minyanim found today";
         html += `<div style="padding: 3px 8px; font-size: 0.7em; opacity: 0.6; font-style: italic;">${msg}</div>`;
       }
       html += `</div>`;
@@ -1243,7 +1238,7 @@
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
     
     document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
-    document.getElementById('minyanCount').value = localStorage.minyanCount || 5;
+    document.getElementById('minyanCount').value = localStorage.minyanCount || 3;
     document.getElementById('urgencyThreshold').value = localStorage.urgencyThreshold || 15;
 
     const s = localStorage.getItem('alarms'); if (s) alarms = JSON.parse(s); createAlarmUI();

@@ -236,23 +236,26 @@
   /* Phone View Layout */
   .phone#clock {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto auto auto;
     grid-template-areas:
-      "weekday weekday weekday"
-      "weather timeline zmanim"
-      "date date date"
-      "hourly hourly hourly";
+      "weekday"
+      "timeline"
+      "date"
+      "zmanim"
+      "weather"
+      "hourly";
     align-items: center;
     justify-items: center;
     width: 100vw;
     height: 100vh;
-    padding: 2vh;
-    gap: 15px;
+    padding: 1.5vh;
+    gap: 8px;
+    overflow-y: auto;
   }
-  .phone .weekday { grid-area: weekday; font-size: min(5vw, 4vh); margin-bottom: 0; }
-  .phone .time-line { grid-area: timeline; font-size: min(18vw, 15vh); position: relative; }
-  .phone .main-hour-minute { line-height: 1; }
+  .phone .weekday { grid-area: weekday; font-size: min(8vw, 5vh); margin-bottom: 0; line-height: 1.2; }
+  .phone .time-line { grid-area: timeline; font-size: min(22vw, 18vh); position: relative; margin: 5px 0; }
+  .phone .main-hour-minute { line-height: 0.9; }
   .phone .time-extras {
     position: absolute;
     left: 100%;
@@ -261,38 +264,38 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    font-size: 0.3em;
+    font-size: 0.25em;
   }
-  .phone #date { grid-area: date; font-size: min(4vw, 3vh); margin-top: 0; }
+  .phone #date { grid-area: date; font-size: min(5vw, 3.5vh); margin: 0; }
   .phone #weather {
     grid-area: weather;
-    flex-direction: column;
+    flex-direction: row;
     background: rgba(255,255,255,0.05);
-    padding: 10px;
-    border-radius: 20px;
-    font-size: min(3vw, 2.5vh);
-    max-width: 28vw;
-    width: 100%;
-    gap: 5px;
+    padding: 12px 20px;
+    border-radius: 60px;
+    font-size: min(3.5vw, 2.5vh);
+    max-width: 90vw;
+    width: auto;
+    gap: 15px;
+    margin-top: 5px;
   }
   .phone #nextZman {
     grid-area: zmanim;
     flex-direction: column;
-    background: rgba(255,255,255,0.05);
-    padding: 10px;
-    border-radius: 20px;
-    font-size: min(2.5vw, 2.2vh);
-    max-width: 28vw;
-    width: 100%;
-    gap: 4px;
-    border: none;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 12px 15px;
+    border-radius: 24px;
+    font-size: 1rem;
+    max-width: 95vw;
+    width: auto;
+    border: 1px solid rgba(0, 229, 255, 0.15);
     text-align: left;
-    align-items: flex-start;
+    align-items: center;
     overflow: hidden;
   }
-  .phone .weather-timeline { grid-area: hourly; display: block; margin: 0; width: 100%; }
-  .phone .weather-stack { border: none; padding: 0; margin: 0; }
-  .phone .weather-rain { border: none; padding: 0; margin: 0; font-size: 0.8em; }
+  .phone .weather-timeline { grid-area: hourly; display: block; margin: 10px 0 0 0; width: 95vw; }
+  .phone .weather-stack { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; margin-left: 0; flex-direction: column; display: flex; }
+  .phone .weather-rain { border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; margin-left: 0; font-size: 0.85em; display: flex; align-items: center; }
 
   /* Theme filter for icons */
   .theme-icon-filter {
@@ -1035,7 +1038,11 @@
 
     if (localStorage.showYUMinyanim === 'true' && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
       const rowCount = Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
-      let html = `<div style="display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: 15px; align-items: start; min-width: 320px;">`;
+      const gridGap = isPhone ? "8px" : "15px";
+      const minWidth = isPhone ? "90vw" : "320px";
+      const fontSize = isPhone ? "0.7em" : "0.8em";
+      
+      let html = `<div style="display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: ${gridGap}; align-items: start; min-width: ${minWidth};">`;
       
       // Column 1: Zmanim
       html += `<div style="display: flex; flex-direction: column; gap: 4px;">`;
@@ -1046,9 +1053,9 @@
           const time = currentZmanimData[key];
           const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
           const urgentClass = isUrgent(time) ? 'urgent-zman' : '';
-          html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; font-size: 0.8em;">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
+          html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
         } else if (i < upcomingMinyanim.length) {
-          html += `<div style="padding: 3px 8px; opacity: 0; font-size: 0.8em;">--</div>`;
+          html += `<div style="padding: 3px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
         }
       }
       if (upcomingZmanim.length === 0) html += `<div style="padding: 3px 8px; font-size: 0.7em; opacity: 0.6;">No more zmanim</div>`;
@@ -1066,10 +1073,9 @@
           if (item) {
             const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
             const urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
-            // Added location here
-            html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75em;" title="${item.type}: ${item.location}">${timeStr}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
+            html += `<div class="${urgentClass}" style="padding: 3px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fontSize};" title="${item.type}: ${item.location}">${timeStr}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
           } else if (i < upcomingZmanim.length) {
-            html += `<div style="padding: 3px 8px; opacity: 0; font-size: 0.75em;">--</div>`;
+            html += `<div style="padding: 3px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
           }
         }
       } else {
@@ -1298,9 +1304,3 @@
   advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
-  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
-  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
-  initializeApp();
-</script>
-</body>
-</html>

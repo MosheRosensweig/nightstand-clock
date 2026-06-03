@@ -162,22 +162,23 @@
   }
   .split .weekday { 
     order: 1; 
-    margin-bottom: 10px; 
+    margin-bottom: 3vh; 
     margin-right: 20px;
   }
   .split .date { 
     order: 2; 
     margin-top: 0; 
-    margin-bottom: 10px;
+    margin-bottom: 3vh;
     font-size: calc(2.2vw * var(--weekday-scale));
   }
   .split .time-line { 
     order: 3; 
     width: 100%; 
-    margin-bottom: 20px;
+    margin-bottom: 4vh;
   }
   .split .weather, .split .next-zman, .split .weather-timeline { 
     order: 4; 
+    margin-top: -1vh; /* Nudge up */
   }
   
   /* Sidebar Hub Layout */
@@ -503,8 +504,8 @@
     .date { font-size: 6vw; }
     .weather { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
     .next-zman { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
-    .weekday { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 2vh; }
-    .split .date { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 2vh; }
+    .weekday { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 3vh; }
+    .split .date { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 3vh; }
     .retro .time-line { font-size: 22vw; }
     .simple .time-line { font-size: 18vw; }
     .minimal .time-line { font-size: 14vw; }
@@ -1373,4 +1374,3 @@
   initializeApp();
 </script>
 </body>
-</html>

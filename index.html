@@ -563,17 +563,18 @@
 <script>
   const ZMANIM_DB = {
     alotHaShachar: { he: "עלות השחר", icon: "🌄", default: true, display: "Alot Hashachar" },
-    sunrise: { he: "נץ החמה", icon: "🌅", default: true, display: "Netz" },
     misheyakir: { he: "משיכיר", icon: "👕", default: true, display: "Mi Sheyakir" },
+    sunrise: { he: "נץ החמה", icon: "🌅", default: true, display: "Netz" },
+    sofZmanShmaMGA: { he: "סוף ק\"ש (מג\"א)", icon: "📜", default: false, display: "Sof Zman Shma MGA" },
     sofZmanShma: { he: "סוף ק\"ש (גר\"א)", icon: "📜", default: true, display: "Sof Zman Shma GRA" },
     sofZmanTfilla: { he: "סוף תפילה (גר\"א)", icon: "🙏", default: true, display: "Sof Zman Tfila" },
     chatzot: { he: "חצות", icon: "🕛", default: true, display: "Chatzot" },
     minchaGedola: { he: "מנחה גדולה", icon: "☀️", default: true, display: "Mincha Gedola" },
-    sunset: { he: "שקיעה", icon: "🌇", default: true, display: "Shkiya" },
-    tzeit85deg: { he: "צאת הכוכבים", icon: "🌌", default: true, display: "Tzeit" },
     plagHaMincha: { he: "פלג המנחה", icon: "🌤️", default: false, display: "Plag HaMincha" },
+    sunset: { he: "שקיעה", icon: "🌇", default: true, display: "Shkiya" },
+    earliestShemaSchachter: { he: "שמע (רה\"ש)", icon: "🌙", default: true, display: "Earliest Shema (R' Schachter)" },
     candleLighting: { he: "הדלקת נרות", icon: "🕯️", default: false, display: "Candle Lighting" },
-    sofZmanShmaMGA: { he: "סוף ק\"ש (מג\"א)", icon: "📜", default: false, display: "Sof Zman Shma MGA" }
+    tzeit85deg: { he: "צאת הכוכבים", icon: "🌌", default: true, display: "Tzeit" }
   };
 
   let currentZmanimData = {}, enabledZmanKeys = new Set(), alarms = [], activeAlarmTimeout = null, lastFetchedDate = "";
@@ -798,10 +799,10 @@
       const gloc = new h.Location(latNum, lonNum, false, tzid);
       const zmanim = new h.Zmanim(gloc, d);
       
-      const safeGet = (methodName) => {
+      const safeGet = (methodName, ...args) => {
         try {
           if (typeof zmanim[methodName] !== 'function') return null;
-          const res = zmanim[methodName]();
+          const res = zmanim[methodName](...args);
           return res ? new Date(res) : null;
         } catch(e) {
           console.warn(`Zmanim method ${methodName} failed:`, e);
@@ -811,17 +812,18 @@
 
       currentZmanimData = {
         alotHaShachar: safeGet('alotHaShachar'),
-        sunrise: safeGet('sunrise'),
         misheyakir: safeGet('misheyakir'),
+        sunrise: safeGet('sunrise'),
+        sofZmanShmaMGA: safeGet('sofZmanShmaMGA'),
         sofZmanShma: safeGet('sofZmanShma'),
         sofZmanTfilla: safeGet('sofZmanTfilla'),
         chatzot: safeGet('chatzot'),
         minchaGedola: safeGet('minchaGedola'),
-        sunset: safeGet('shkiah'),
-        tzeit85deg: safeGet('tzeit'),
         plagHaMincha: safeGet('plagHaMincha'),
+        sunset: safeGet('shkiah'),
+        earliestShemaSchachter: safeGet('tzeit', 6.0), // 6.0 degrees corresponds to 24 minutes as degrees in Jerusalem at equinox
         candleLighting: safeGet('candleLighting'),
-        sofZmanShmaMGA: safeGet('sofZmanShmaMGA')
+        tzeit85deg: safeGet('tzeit')
       };
 
       zmanimError = null;
@@ -1035,5 +1037,3 @@
   [zmanCustomColorInput, weatherCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>
-</body>
-</html>

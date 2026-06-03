@@ -610,7 +610,11 @@
     else icon = isNight ? '🌙' : (code >= 1 ? "🌤️" : "☀️");
 
     const useTheme = localStorage.weatherIconColor === 'theme';
-    return `<span class="${useTheme ? 'theme-icon-filter' : ''}">${icon}</span>`;
+    let classes = [];
+    if (useTheme) classes.push('theme-icon-filter');
+    if (isNight && icon === '🌙') classes.push('night-moon');
+    
+    return `<span class="${classes.join(' ')}">${icon}</span>`;
   }
 
   function updateWeatherTimeline(data) {
@@ -1037,3 +1041,5 @@
   [zmanCustomColorInput, weatherCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>
+</body>
+</html>

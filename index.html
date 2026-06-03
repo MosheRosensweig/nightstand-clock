@@ -150,6 +150,35 @@
   .split .time-extras {
     text-shadow: 0 0 8px var(--fg);
   }
+
+  /* Split View Specific Layout (Mobile Landscape) */
+  .split#clock {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    gap: 0;
+  }
+  .split .weekday { 
+    order: 1; 
+    margin-bottom: 10px; 
+    margin-right: 20px;
+  }
+  .split .date { 
+    order: 2; 
+    margin-top: 0; 
+    margin-bottom: 10px;
+    font-size: calc(2.2vw * var(--weekday-scale));
+  }
+  .split .time-line { 
+    order: 3; 
+    width: 100%; 
+    margin-bottom: 20px;
+  }
+  .split .weather, .split .next-zman, .split .weather-timeline { 
+    order: 4; 
+  }
   
   /* Sidebar Hub Layout */
   .sidebar#clock {
@@ -475,6 +504,7 @@
     .weather { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
     .next-zman { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
     .weekday { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 2vh; }
+    .split .date { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 2vh; }
     .retro .time-line { font-size: 22vw; }
     .simple .time-line { font-size: 18vw; }
     .minimal .time-line { font-size: 14vw; }
@@ -866,7 +896,20 @@
     }
 
     const df = localStorage.dateFmt || 'medium';
-    dateEl.textContent = df === 'numeric' ? now.toLocaleDateString() : (df === 'long' ? now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }));
+    const layout = localStorage.layout || (window.innerWidth <= 1024 ? 'split' : 'retro');
+    const isSplit = layout === 'split';
+
+    if (df === 'numeric') {
+      dateEl.textContent = now.toLocaleDateString();
+    } else if (df === 'long') {
+      const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+      if (!isSplit) opts.weekday = 'long';
+      dateEl.textContent = now.toLocaleDateString([], opts);
+    } else {
+      const opts = { month: 'short', day: 'numeric' };
+      if (!isSplit) opts.weekday = 'short';
+      dateEl.textContent = now.toLocaleDateString([], opts);
+    }
     updateNextZmanDisplay();
     if (now.getMinutes() % 10 === 0 && now.getSeconds() === 0) updateRainInfo();
   }
@@ -1250,7 +1293,7 @@
 
   function openModalWithCurrentSettings() {
     const defaultLayout = (window.innerWidth <= 1024) ? 'split' : 'retro';
-    layoutSelect.value = localStorage.layout || defaultLayout; 
+    layoutSelect.value = localStorage.layout || defaultLayout;
     weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
     dateFmtSelect.value = localStorage.dateFmt || 'medium'; fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
     colorPreset.value = localStorage.colorPreset || '#00e5ff'; customColor.value = localStorage.customColor || '#00e5ff';

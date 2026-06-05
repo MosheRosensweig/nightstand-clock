@@ -502,8 +502,16 @@
     50%, 100% { background-color: var(--urgent-c2, #000000); color: white; }
   }
   @keyframes urgentFade {
-    0%, 100% { background-color: var(--urgent-c1, #ff0000); color: white; }
-    50% { background-color: var(--urgent-c2, #000000); color: white; }
+    0%, 100% { 
+      background-color: var(--urgent-c1, #ff0000); 
+      border-color: var(--urgent-c1);
+      box-shadow: 0 0 20px var(--urgent-c1);
+    }
+    50% { 
+      background-color: var(--urgent-c2, #000000); 
+      border-color: var(--urgent-c2);
+      box-shadow: 0 0 5px var(--urgent-c2);
+    }
   }
   .urgent-zman {
     background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.3), transparent);
@@ -511,16 +519,16 @@
     animation: redWave 4s infinite linear;
     border: 1px solid #ff3b30;
     box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+    transition: background 0.3s, border-color 0.3s;
   }
   .urgent-zman.flash-mode {
     background: none;
-    animation: urgentFlash var(--urgent-speed, 0.5s) infinite !important;
+    animation: urgentFlash var(--urgent-speed, 0.5s) step-end infinite !important;
     border: 1px solid var(--urgent-c1) !important;
   }
   .urgent-zman.fade-mode {
     background: none;
-    animation: urgentFade var(--urgent-speed, 0.5s) infinite !important;
-    border: 1px solid var(--urgent-c1) !important;
+    animation: urgentFade var(--urgent-speed, 0.5s) ease-in-out infinite !important;
   }
 
   @media (max-width: 640px) {
@@ -697,7 +705,7 @@
   };
 
   let currentZmanimData = {}, enabledZmanKeys = new Set(), alarms = [], activeAlarmTimeout = null, lastFetchedDate = "";
-  let minyanimData = [], lastMinyanFetch = 0, isFetchingMinyanim = false;
+  let minyanimData = [], lastMinyanFetch = 0, isFetchingMinyanim = false, fetchCounter = 0;
   let hourlyPrecipitation = [];
   let zmanimError = null;
   let lastWeatherData = null;
@@ -711,6 +719,7 @@
       return;
     }
     
+    const currentFetchId = ++fetchCounter;
     isFetchingMinyanim = true;
     updateNextZmanDisplay();
 
@@ -721,7 +730,7 @@
 
     // URLs with explicit date tracking
     const configs = [
-      { url: 'https://www.yuzmanim.com/', date: dateToday },
+      { url: 'https://www.yuzmanim.com/', date: null }, // Homepage uses null for smart rollover
       { url: 'https://www.yuzmanim.com/shacharis?date=' + dateToday, date: dateToday },
       { url: 'https://www.yuzmanim.com/shacharis?date=' + dateTom, date: dateTom },
       { url: 'https://www.yuzmanim.com/mincha?date=' + dateToday, date: dateToday },
@@ -741,6 +750,15 @@
           return parseMinyanimFromHTML(data.contents, c.date, now);
         } catch(e) { return []; }
       }));
+
+      // If a newer fetch has already started, abort this update to prevent "swapping"
+      if (currentFetchId !== fetchCounter) {
+        if (fetchCounter === currentFetchId + 1) {
+           // We are only one behind, but still abort. 
+           // No need to reset isFetchingMinyanim here because the newer one will do it.
+        }
+        return;
+      }
 
       let allMinyanim = [].concat(...fetchResults);
       let uniqueMinyanim = [];
@@ -766,9 +784,11 @@
       isFetchingMinyanim = false;
       updateNextZmanDisplay();
     } catch (e) {
-      console.error("Critical error in fetchYUMinyanim:", e);
-      isFetchingMinyanim = false;
-      updateNextZmanDisplay();
+      if (currentFetchId === fetchCounter) {
+        console.error("Critical error in fetchYUMinyanim:", e);
+        isFetchingMinyanim = false;
+        updateNextZmanDisplay();
+      }
     }
   }
 
@@ -782,7 +802,7 @@
     const results = [];
     
     const noiseWords = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "January", "February", "March", "April", "June", "July", "August", "September", "October", "November", "December", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const noiseRegex = new RegExp('\\\\b(' + noiseWords.join('|') + ')\\\\b', 'i');
+    const noiseRegex = new RegExp('\\b(' + noiseWords.join('|') + ')\\b', 'i');
 
     allRows.forEach(row => {
       // Skip if row is inside passed events container
@@ -803,10 +823,9 @@
           if (location.length < 2 || location.includes("Logout") || location.includes("Menu")) return;
           if (noiseRegex.test(location)) return;
 
-          let parsedTime = parseTimeStringWithDate(timeStr, pageDateStr);
+          const dateToUse = pageDateStr || (now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0'));
+          let parsedTime = parseTimeStringWithDate(timeStr, dateToUse);
           
-          // No rolling over here; we rely on fetching explicit date pages.
-          // The only exception is the Homepage which we assume is "Today"
           if (parsedTime) {
             results.push({ type, location, timeStr, parsedTime });
           }
@@ -951,7 +970,8 @@
     const uSpeed = localStorage.urgentFlashSpeed || '0.5';
     const uC1 = localStorage.urgentColor1 || '#ff0000';
     const uC2 = localStorage.urgentColor2 || '#000000';
-    document.documentElement.style.setProperty('--urgent-speed', uSpeed + 's');
+    // Double the value so the speed represents the duration of ONE directional transition
+    document.documentElement.style.setProperty('--urgent-speed', (uSpeed * 2) + 's');
     document.documentElement.style.setProperty('--urgent-c1', uC1);
     document.documentElement.style.setProperty('--urgent-c2', uC2);
   }
@@ -1173,7 +1193,11 @@
       .sort((a,b) => currentZmanimData[a] - currentZmanimData[b]);
       
     const upcomingZmanim = sortedKeys.filter(k => enabledZmanKeys.has(k) && currentZmanimData[k] > now).slice(0, mLimit);
-    const upcomingMinyanim = (localStorage.showYUMinyanim === 'true') ? minyanimData.slice(0, mLimit) : [];
+    
+    // Real-time filter: Ensure we only show minyanim that are still in the future
+    const upcomingMinyanim = (localStorage.showYUMinyanim === 'true') 
+      ? minyanimData.filter(m => m.parsedTime > now).slice(0, mLimit) 
+      : [];
 
     const uStyle = localStorage.urgentStyle || 'flash';
 

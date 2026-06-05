@@ -133,21 +133,26 @@
 
   /* Layout styles */
   .retro .time-line { font-size: 18vw; }
-  .retro .main-hour-minute, .retro .time-extras, .retro .date, .retro .weekday { font-weight: 700; text-shadow: 0 0 8px currentColor; }
+  .retro .main-hour-minute, .retro .time-extras, .retro .date, .retro .weekday { font-weight: 700; }
+  .glow-on .retro .main-hour-minute, .glow-on .retro .time-extras, .glow-on .retro .date, .glow-on .retro .weekday { text-shadow: 0 0 8px currentColor; }
+  
   .simple .time-line { font-size: 14vw; }
   .simple .main-hour-minute { font-weight: 400; }
   .minimal .time-line { font-size: 12vw; }
   .minimal .main-hour-minute { font-weight: 300; }
+  
   .split .time-line { font-size: 13vw; }
   .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday {
     font-weight: 600;
     color: var(--fg);
-    text-shadow: 0 0 12px var(--fg), 0 0 24px rgba(0, 229, 255, 0.4);
     background: none;
     -webkit-background-clip: initial;
     background-clip: initial;
   }
-  .split .time-extras {
+  .glow-on .split .main-hour-minute, .glow-on .split .time-extras, .glow-on .split .date, .glow-on .split .weekday {
+    text-shadow: 0 0 12px var(--fg), 0 0 24px rgba(0, 229, 255, 0.4);
+  }
+  .glow-on .split .time-extras {
     text-shadow: 0 0 8px var(--fg);
   }
 
@@ -160,24 +165,24 @@
     align-content: center;
     gap: 0;
   }
-  .split .weekday { 
-    order: 1; 
-    margin-bottom: 3vh; 
+  .split .weekday {
+    order: 1;
+    margin-bottom: 3vh;
     margin-right: 20px;
   }
-  .split .date { 
-    order: 2; 
-    margin-top: 0; 
+  .split .date {
+    order: 2;
+    margin-top: 0;
     margin-bottom: 3vh;
     font-size: calc(2.2vw * var(--weekday-scale));
   }
-  .split .time-line { 
-    order: 3; 
-    width: 100%; 
+  .split .time-line {
+    order: 3;
+    width: 100%;
     margin-bottom: 4vh;
   }
-  .split .weather, .split .next-zman, .split .weather-timeline { 
-    order: 4; 
+  .split .weather, .split .next-zman, .split .weather-timeline {
+    order: 4;
     margin-top: -1vh; /* Nudge up */
   }
   
@@ -614,6 +619,10 @@
       </div>
 
       <div id="tab-display" class="tab-content">
+        <label>✨ Glow Effect</label>
+        <select id="glowEnabled"><option value="true">On</option><option value="false">Off</option></select>
+        <label>🖥️ Auto Fullscreen on start</label>
+        <select id="autoFullscreen"><option value="true">Enabled</option><option value="false">Disabled</option></select>
         <label>📆 Weekday Text Size</label>
         <select id="weekdaySize"><option value="0.8">Small (0.8x)</option><option value="1.0">Normal (1x)</option><option value="1.2">Big (1.2x)</option><option value="1.5">Extra Large (1.5x)</option><option value="1.8">Huge (1.8x)</option></select>
         <label>⏲️ Time Extras (Seconds & AM/PM)</label>
@@ -654,7 +663,7 @@
   let zmanimError = null;
   let lastWeatherData = null;
 
-  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor');
+  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen');
 
   async function fetchYUMinyanim() {
     if (localStorage.showYUMinyanim !== 'true') {
@@ -666,71 +675,54 @@
     isFetchingMinyanim = true;
     updateNextZmanDisplay();
 
-    const urls = [
-      'https://yuzmanim.com/',
-      'https://www.yuzmanim.com/shacharis',
-      'https://www.yuzmanim.com/mincha',
-      'https://www.yuzmanim.com/maariv'
-    ];
-    
     const now = new Date();
-    // Broad regex to capture prayer, location and time across different YU page formats
-    const regex = /(Shacharis|Mincha|Maariv|Shacharit|Arvit|Mincha Gedolah|Mincha Gedola|Plag HaMincha)\s+([\s\S]{1,150}?)\s+(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))/gi;
-    let allFound = [];
+    const dateToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    const tom = new Date(now); tom.setDate(tom.getDate() + 1);
+    const dateTom = tom.getFullYear() + '-' + String(tom.getMonth() + 1).padStart(2, '0') + '-' + String(tom.getDate()).padStart(2, '0');
+
+    // Fetch homepage + Today's and Tomorrow's specific pages for maximum coverage
+    const urls = [
+      { url: 'https://www.yuzmanim.com/', date: dateToday },
+      { url: 'https://www.yuzmanim.com/shacharis?date=' + dateToday, date: dateToday },
+      { url: 'https://www.yuzmanim.com/shacharis?date=' + dateTom, date: dateTom },
+      { url: 'https://www.yuzmanim.com/mincha?date=' + dateToday, date: dateToday },
+      { url: 'https://www.yuzmanim.com/mincha?date=' + dateTom, date: dateTom },
+      { url: 'https://www.yuzmanim.com/maariv?date=' + dateToday, date: dateToday },
+      { url: 'https://www.yuzmanim.com/maariv?date=' + dateTom, date: dateTom }
+    ];
 
     try {
-      const fetchPromises = urls.map(async (url) => {
+      const fetchResults = await Promise.all(urls.map(async (u) => {
         try {
-          // Try AllOrigins first
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          let resp = await fetch(proxyUrl);
-          let html = "";
-          if (resp.ok) {
-            const data = await resp.json();
-            html = data.contents || "";
-          } else {
-            // Fallback proxy
-            const fallbackUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
-            resp = await fetch(fallbackUrl);
-            if (resp.ok) html = await resp.text();
-          }
-          
-          if (!html) return "";
-          // Strip tags and normalize spaces
-          return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ');
-        } catch (e) {
-          console.error(`Failed to fetch YU Minyanim from ${url}:`, e);
-          return "";
-        }
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(u.url)}`;
+          const resp = await fetch(proxyUrl);
+          if (!resp.ok) return [];
+          const data = await resp.json();
+          if (!data || !data.contents) return [];
+          return parseMinyanimFromHTML(data.contents, u.date, now);
+        } catch(e) { return []; }
+      }));
+
+      let allMinyanim = [].concat(...fetchResults);
+      let uniqueMinyanim = [];
+      
+      allMinyanim.forEach(m => {
+        if (m.parsedTime < now) return; // Skip past minyanim
+
+        const locKey = m.location.toLowerCase().replace(/\s+/g, '');
+        const typeKey = m.type.toLowerCase();
+        
+        const exists = uniqueMinyanim.some(u =>
+          u.type.toLowerCase() === typeKey &&
+          u.location.toLowerCase().replace(/\s+/g, '') === locKey &&
+          Math.abs(u.parsedTime - m.parsedTime) < 60000
+        );
+        
+        if (!exists) uniqueMinyanim.push(m);
       });
 
-      const results = await Promise.all(fetchPromises);
-      
-      results.forEach(text => {
-        if (!text) return;
-        let match;
-        regex.lastIndex = 0;
-        while ((match = regex.exec(text)) !== null) {
-          const type = match[1].trim();
-          const location = match[2].trim();
-          const timeStr = match[3].trim().toUpperCase();
-          const parsedTime = parseTimeString(timeStr);
-          
-          if (parsedTime && parsedTime > now && location.length > 2 && !location.includes("----------------")) {
-            const exists = allFound.some(f =>
-              f.type === type &&
-              f.location === location &&
-              Math.abs(f.parsedTime.getTime() - parsedTime.getTime()) < 60000
-            );
-            if (!exists) {
-              allFound.push({ type, location, timeStr, parsedTime });
-            }
-          }
-        }
-      });
-      
-      allFound.sort((a, b) => a.parsedTime - b.parsedTime);
-      minyanimData = allFound;
+      uniqueMinyanim.sort((a, b) => a.parsedTime - b.parsedTime);
+      minyanimData = uniqueMinyanim;
       lastMinyanFetch = Date.now();
       isFetchingMinyanim = false;
       updateNextZmanDisplay();
@@ -741,8 +733,44 @@
     }
   }
 
-  function parseTimeString(timeStr) {
-    const now = new Date();
+  function parseMinyanimFromHTML(html, pageDateStr, now) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const eventRows = doc.querySelectorAll('.event');
+    const results = [];
+
+    eventRows.forEach(row => {
+      try {
+        const typeEl = row.querySelector('.type');
+        const locEl = row.querySelector('.post-link');
+        const timeEl = row.querySelector('b');
+        
+        if (typeEl && locEl && timeEl) {
+          const type = typeEl.textContent.trim();
+          const location = locEl.textContent.trim();
+          const timeStr = timeEl.textContent.trim().toUpperCase();
+          
+          // Basic validation to avoid noise
+          if (location.length < 2 || location.includes("Logout") || location.includes("Menu")) return;
+
+          let parsedTime = parseTimeStringWithDate(timeStr, pageDateStr);
+          
+          // Rollover check for Homepage (no date parameter)
+          // If we are on the homepage (pageDateStr == today) and the time is early AM but it's late night now
+          if (parsedTime < now && Math.abs(now - parsedTime) > 6 * 3600000) {
+             parsedTime.setDate(parsedTime.getDate() + 1);
+          }
+
+          if (parsedTime) {
+            results.push({ type, location, timeStr, parsedTime });
+          }
+        }
+      } catch (e) {}
+    });
+    return results;
+  }
+
+  function parseTimeStringWithDate(timeStr, dateStr) {
     const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
     if (!match) return null;
     let [_, hours, minutes, modifier] = match;
@@ -751,12 +779,12 @@
     if (modifier.toUpperCase() === 'PM' && hours < 12) hours += 12;
     if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
     
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
-    // If the parsed time is in the past, assume it's for the next day
-    if (d < now) {
-      d.setDate(d.getDate() + 1);
-    }
-    return d;
+    const parts = dateStr.split('-');
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    
+    return new Date(y, m - 1, d, hours, minutes, 0);
   }
 
   function isUrgent(date) {
@@ -869,6 +897,9 @@
     document.body.style.fontFamily = localStorage.font || "'Inter', 'SF Mono', monospace";
     document.documentElement.style.setProperty('--weekday-scale', localStorage.weekdaySize || "1.2");
     document.querySelector('.time-extras').classList.toggle('hide-extras', localStorage.showTimeExtras === 'false');
+    
+    // Glow effect toggle
+    document.body.classList.toggle('glow-on', localStorage.glowEnabled !== 'false');
   }
 
   function updateTimeAndDate() {
@@ -1283,6 +1314,8 @@
     localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value; localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
     localStorage.weatherIconColor = weatherIconColorSelect.value;
     localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
+    localStorage.glowEnabled = glowEnabledSelect.value;
+    localStorage.autoFullscreen = autoFullscreenSelect.value;
     localStorage.setItem('alarms', JSON.stringify(alarms));
     
     localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
@@ -1307,6 +1340,8 @@
     weatherIconColorSelect.value = localStorage.weatherIconColor || 'default';
     weatherIconCustomColorInput.value = localStorage.weatherIconCustomColor || '#00e5ff';
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
+    glowEnabledSelect.value = localStorage.glowEnabled || 'true';
+    autoFullscreenSelect.value = localStorage.autoFullscreen || 'true';
     
     document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
     document.getElementById('minyanCount').value = localStorage.minyanCount || 3;
@@ -1332,6 +1367,8 @@
     localStorage.weatherFmt = weatherFmtSelect.value; localStorage.font = fontSelect.value;
     localStorage.weatherIconColor = weatherIconColorSelect.value;
     localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
+    localStorage.glowEnabled = glowEnabledSelect.value;
+    localStorage.autoFullscreen = autoFullscreenSelect.value;
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
     applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay();
   }
@@ -1346,9 +1383,18 @@
     }
     applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
     setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
-    setInterval(fetchYUMinyanim, 60*60000); // Hourly refresh
+    setInterval(fetchYUMinyanim, 10*60000); // Updated to 10 minutes
     initGeolocationAndZmanim();
     fetchYUMinyanim();
+
+    // Auto fullscreen on first click if enabled
+    const autoFsHandler = () => {
+      if (localStorage.autoFullscreen !== 'false' && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        toggleFullscreen();
+      }
+      document.removeEventListener('click', autoFsHandler);
+    };
+    document.addEventListener('click', autoFsHandler);
   }
 
   async function toggleFullscreen() {
@@ -1369,7 +1415,7 @@
   advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
-  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
+  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
   [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>

@@ -497,12 +497,30 @@
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
   }
+  @keyframes urgentFlash {
+    0%, 49% { background-color: var(--urgent-c1, #ff0000); color: white; }
+    50%, 100% { background-color: var(--urgent-c2, #000000); color: white; }
+  }
+  @keyframes urgentFade {
+    0%, 100% { background-color: var(--urgent-c1, #ff0000); color: white; }
+    50% { background-color: var(--urgent-c2, #000000); color: white; }
+  }
   .urgent-zman {
-    background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.3), transparent) !important;
-    background-size: 200% 100% !important;
-    animation: redWave 4s infinite linear !important;
-    border: 1px solid #ff3b30 !important;
-    box-shadow: 0 0 15px rgba(255, 59, 48, 0.4) !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: redWave 4s infinite linear;
+    border: 1px solid #ff3b30;
+    box-shadow: 0 0 15px rgba(255, 59, 48, 0.4);
+  }
+  .urgent-zman.flash-mode {
+    background: none;
+    animation: urgentFlash var(--urgent-speed, 0.5s) infinite !important;
+    border: 1px solid var(--urgent-c1) !important;
+  }
+  .urgent-zman.fade-mode {
+    background: none;
+    animation: urgentFade var(--urgent-speed, 0.5s) infinite !important;
+    border: 1px solid var(--urgent-c1) !important;
   }
 
   @media (max-width: 640px) {
@@ -589,6 +607,27 @@
         <input type="number" id="minyanCount" min="1" max="15" value="3">
         <label>🚨 Urgency Threshold (minutes)</label>
         <input type="number" id="urgencyThreshold" min="1" max="60" value="15">
+        
+        <label>✨ Urgent Highlight Style</label>
+        <select id="urgentStyle">
+          <option value="wave">Red Wave (Default)</option>
+          <option value="flash">Flashing Colors</option>
+          <option value="fade">Fading Colors</option>
+        </select>
+        <div id="urgentFlashSettings" style="display:none;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label>Color 1</label>
+              <input type="color" id="urgentColor1" value="#ff0000">
+            </div>
+            <div>
+              <label>Color 2</label>
+              <input type="color" id="urgentColor2" value="#000000">
+            </div>
+          </div>
+          <label>Flash Speed (seconds)</label>
+          <input type="number" id="urgentFlashSpeed" step="0.1" min="0.1" value="0.5">
+        </div>
       </div>
 
       <div id="tab-alarms" class="tab-content">
@@ -663,7 +702,7 @@
   let zmanimError = null;
   let lastWeatherData = null;
 
-  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen');
+  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen'), urgentStyleSelect = document.getElementById('urgentStyle'), urgentColor1Input = document.getElementById('urgentColor1'), urgentColor2Input = document.getElementById('urgentColor2'), urgentFlashSpeedInput = document.getElementById('urgentFlashSpeed'), urgentFlashSettings = document.getElementById('urgentFlashSettings');
 
   async function fetchYUMinyanim() {
     if (localStorage.showYUMinyanim !== 'true') {
@@ -680,8 +719,8 @@
     const tom = new Date(now); tom.setDate(tom.getDate() + 1);
     const dateTom = tom.getFullYear() + '-' + String(tom.getMonth() + 1).padStart(2, '0') + '-' + String(tom.getDate()).padStart(2, '0');
 
-    // Fetch homepage + Today's and Tomorrow's specific pages for maximum coverage
-    const urls = [
+    // URLs with explicit date tracking
+    const configs = [
       { url: 'https://www.yuzmanim.com/', date: dateToday },
       { url: 'https://www.yuzmanim.com/shacharis?date=' + dateToday, date: dateToday },
       { url: 'https://www.yuzmanim.com/shacharis?date=' + dateTom, date: dateTom },
@@ -692,14 +731,14 @@
     ];
 
     try {
-      const fetchResults = await Promise.all(urls.map(async (u) => {
+      const fetchResults = await Promise.all(configs.map(async (c) => {
         try {
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(u.url)}`;
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(c.url)}`;
           const resp = await fetch(proxyUrl);
           if (!resp.ok) return [];
           const data = await resp.json();
           if (!data || !data.contents) return [];
-          return parseMinyanimFromHTML(data.contents, u.date, now);
+          return parseMinyanimFromHTML(data.contents, c.date, now);
         } catch(e) { return []; }
       }));
 
@@ -707,7 +746,7 @@
       let uniqueMinyanim = [];
       
       allMinyanim.forEach(m => {
-        if (m.parsedTime < now) return; // Skip past minyanim
+        if (m.parsedTime <= now) return; // STRICT FUTURE ONLY
 
         const locKey = m.location.toLowerCase().replace(/\s+/g, '');
         const typeKey = m.type.toLowerCase();
@@ -736,31 +775,38 @@
   function parseMinyanimFromHTML(html, pageDateStr, now) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const eventRows = doc.querySelectorAll('.event');
+    
+    // Ignore events in the "Passed Events" section of the homepage
+    const passedSection = doc.getElementById('passed_events');
+    const allRows = Array.from(doc.querySelectorAll('.event'));
     const results = [];
+    
+    const noiseWords = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "January", "February", "March", "April", "June", "July", "August", "September", "October", "November", "December", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const noiseRegex = new RegExp('\\\\b(' + noiseWords.join('|') + ')\\\\b', 'i');
 
-    eventRows.forEach(row => {
+    allRows.forEach(row => {
+      // Skip if row is inside passed events container
+      if (passedSection && passedSection.contains(row)) return;
+      // Skip if row has "past" styling (grey color)
+      if (row.style.color === 'rgb(108, 117, 125)' || row.getAttribute('style')?.includes('#6C757D')) return;
+
       try {
         const typeEl = row.querySelector('.type');
-        const locEl = row.querySelector('.post-link');
+        const locEl = row.querySelector('.post-link') || row.querySelector('i');
         const timeEl = row.querySelector('b');
         
-        if (typeEl && locEl && timeEl) {
+        if (typeEl && timeEl) {
           const type = typeEl.textContent.trim();
-          const location = locEl.textContent.trim();
+          const location = locEl ? locEl.textContent.trim() : "Unknown";
           const timeStr = timeEl.textContent.trim().toUpperCase();
           
-          // Basic validation to avoid noise
           if (location.length < 2 || location.includes("Logout") || location.includes("Menu")) return;
+          if (noiseRegex.test(location)) return;
 
           let parsedTime = parseTimeStringWithDate(timeStr, pageDateStr);
           
-          // Rollover check for Homepage (no date parameter)
-          // If we are on the homepage (pageDateStr == today) and the time is early AM but it's late night now
-          if (parsedTime < now && Math.abs(now - parsedTime) > 6 * 3600000) {
-             parsedTime.setDate(parsedTime.getDate() + 1);
-          }
-
+          // No rolling over here; we rely on fetching explicit date pages.
+          // The only exception is the Homepage which we assume is "Today"
           if (parsedTime) {
             results.push({ type, location, timeStr, parsedTime });
           }
@@ -900,6 +946,14 @@
     
     // Glow effect toggle
     document.body.classList.toggle('glow-on', localStorage.glowEnabled !== 'false');
+
+    // Urgent Highlight Style
+    const uSpeed = localStorage.urgentFlashSpeed || '0.5';
+    const uC1 = localStorage.urgentColor1 || '#ff0000';
+    const uC2 = localStorage.urgentColor2 || '#000000';
+    document.documentElement.style.setProperty('--urgent-speed', uSpeed + 's');
+    document.documentElement.style.setProperty('--urgent-c1', uC1);
+    document.documentElement.style.setProperty('--urgent-c2', uC2);
   }
 
   function updateTimeAndDate() {
@@ -1121,6 +1175,8 @@
     const upcomingZmanim = sortedKeys.filter(k => enabledZmanKeys.has(k) && currentZmanimData[k] > now).slice(0, mLimit);
     const upcomingMinyanim = (localStorage.showYUMinyanim === 'true') ? minyanimData.slice(0, mLimit) : [];
 
+    const uStyle = localStorage.urgentStyle || 'flash';
+
     if (localStorage.showYUMinyanim === 'true' && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
       // For split view, force a compact row count (max 3)
       const maxRows = isSplit ? 3 : Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
@@ -1140,7 +1196,11 @@
         if (key) {
           const time = currentZmanimData[key];
           const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-          const urgentClass = isUrgent(time) ? 'urgent-zman' : '';
+          let urgentClass = isUrgent(time) ? 'urgent-zman' : '';
+          if (urgentClass) {
+            if (uStyle === 'flash') urgentClass += ' flash-mode';
+            else if (uStyle === 'fade') urgentClass += ' fade-mode';
+          }
           html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
         } else if (i < upcomingMinyanim.length && i < rowCount) {
           html += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
@@ -1160,8 +1220,14 @@
           const item = upcomingMinyanim[i];
           if (item) {
             const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-            const urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
-            html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fontSize};" title="${item.type}: ${item.location}">${timeStr}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
+            const isTom = item.parsedTime.getDate() !== now.getDate();
+            const tomTxt = isTom ? ' <span style="font-size: 0.8em; opacity: 0.8;">(Tom)</span>' : '';
+            let urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
+            if (urgentClass) {
+              if (uStyle === 'flash') urgentClass += ' flash-mode';
+              else if (uStyle === 'fade') urgentClass += ' fade-mode';
+            }
+            html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fontSize};" title="${item.type}: ${item.location}">${timeStr}${tomTxt}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
           } else if (i < upcomingZmanim.length && i < rowCount) {
             html += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
           }
@@ -1188,7 +1254,10 @@
       // Single list fallback (if YU disabled or no minyanim found)
       const item = upcomingZmanim[0];
       const time = currentZmanimData[item];
-      nextZmanEl.classList.toggle('urgent-zman', isUrgent(time));
+      let isUrg = isUrgent(time);
+      nextZmanEl.classList.toggle('urgent-zman', isUrg);
+      nextZmanEl.classList.toggle('flash-mode', isUrg && uStyle === 'flash');
+      nextZmanEl.classList.toggle('fade-mode', isUrg && uStyle === 'fade');
 
       if (isSidebar || isPhone) {
         let html = "";
@@ -1196,7 +1265,11 @@
         upcomingZmanim.slice(0, count).forEach(key => {
           const time = currentZmanimData[key];
           const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-          const urgentClass = isUrgent(time) ? 'urgent-zman' : '';
+          let urgentClass = isUrgent(time) ? 'urgent-zman' : '';
+          if (urgentClass) {
+            if (uStyle === 'flash') urgentClass += ' flash-mode';
+            else if (uStyle === 'fade') urgentClass += ' fade-mode';
+          }
           html += `<div class="${urgentClass}" style="padding: 4px 8px; border-radius: 8px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
         });
         nextZmanEl.innerHTML = html;
@@ -1316,6 +1389,10 @@
     localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
     localStorage.glowEnabled = glowEnabledSelect.value;
     localStorage.autoFullscreen = autoFullscreenSelect.value;
+    localStorage.urgentStyle = urgentStyleSelect.value;
+    localStorage.urgentColor1 = urgentColor1Input.value;
+    localStorage.urgentColor2 = urgentColor2Input.value;
+    localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
     localStorage.setItem('alarms', JSON.stringify(alarms));
     
     localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
@@ -1342,6 +1419,11 @@
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
     glowEnabledSelect.value = localStorage.glowEnabled || 'true';
     autoFullscreenSelect.value = localStorage.autoFullscreen || 'true';
+    urgentStyleSelect.value = localStorage.urgentStyle || 'flash';
+    urgentColor1Input.value = localStorage.urgentColor1 || '#ff0000';
+    urgentColor2Input.value = localStorage.urgentColor2 || '#000000';
+    urgentFlashSpeedInput.value = localStorage.urgentFlashSpeed || '0.5';
+    urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
     
     document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
     document.getElementById('minyanCount').value = localStorage.minyanCount || 3;
@@ -1369,7 +1451,12 @@
     localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
     localStorage.glowEnabled = glowEnabledSelect.value;
     localStorage.autoFullscreen = autoFullscreenSelect.value;
+    localStorage.urgentStyle = urgentStyleSelect.value;
+    localStorage.urgentColor1 = urgentColor1Input.value;
+    localStorage.urgentColor2 = urgentColor2Input.value;
+    localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
+    urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
     applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay();
   }
 
@@ -1415,8 +1502,8 @@
   advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
-  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
-  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
+  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect, urgentStyleSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
+  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput, urgentColor1Input, urgentColor2Input, urgentFlashSpeedInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>
 </body>

@@ -477,7 +477,7 @@
   .weather-timeline::-webkit-scrollbar { display: none; }
   .weather-timeline-inner { display: flex; gap: 20px; padding: 0 20px; width: max-content; }
   .timeline-item { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.9rem; min-width: 60px; }
-  .timeline-time { opacity: 0.6; font-size: 0.75rem; }
+  .timeline-time { opacity: 1; font-size: 0.9rem; }
   .timeline-temp { font-weight: 600; }
   .timeline-icon { font-size: 1.2rem; }
   .night-moon { filter: grayscale(100%) brightness(1000%); display: inline-block; }
@@ -611,7 +611,7 @@
             <input type="checkbox" id="showYUMinyanim"> <span>Enable YU Minyanim Lookup</span>
           </label>
         </div>
-        <label>🔢 Max Minyanim to show</label>
+        <label id="maxItemsLabel">🔢 Max items to show (Zmanim/Minyanim)</label>
         <input type="number" id="minyanCount" min="1" max="15" value="3">
         <label>🚨 Urgency Threshold (minutes)</label>
         <input type="number" id="urgencyThreshold" min="1" max="60" value="15">
@@ -713,12 +713,6 @@
   const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen'), urgentStyleSelect = document.getElementById('urgentStyle'), urgentColor1Input = document.getElementById('urgentColor1'), urgentColor2Input = document.getElementById('urgentColor2'), urgentFlashSpeedInput = document.getElementById('urgentFlashSpeed'), urgentFlashSettings = document.getElementById('urgentFlashSettings');
 
   async function fetchYUMinyanim() {
-    if (localStorage.showYUMinyanim !== 'true') {
-      minyanimData = [];
-      updateNextZmanDisplay();
-      return;
-    }
-    
     const currentFetchId = ++fetchCounter;
     isFetchingMinyanim = true;
     updateNextZmanDisplay();
@@ -728,14 +722,13 @@
     const tom = new Date(now); tom.setDate(tom.getDate() + 1);
     const dateTom = tom.getFullYear() + '-' + String(tom.getMonth() + 1).padStart(2, '0') + '-' + String(tom.getDate()).padStart(2, '0');
 
-    // URLs with explicit date tracking
+    // Fetch basic pages for today and tomorrow to cover all bases
     const configs = [
-      { url: 'https://www.yuzmanim.com/', date: null }, // Homepage uses null for smart rollover
-      { url: 'https://www.yuzmanim.com/shacharis?date=' + dateToday, date: dateToday },
+      { url: 'https://www.yuzmanim.com/shacharis', date: dateToday },
+      { url: 'https://www.yuzmanim.com/mincha', date: dateToday },
+      { url: 'https://www.yuzmanim.com/maariv', date: dateToday },
       { url: 'https://www.yuzmanim.com/shacharis?date=' + dateTom, date: dateTom },
-      { url: 'https://www.yuzmanim.com/mincha?date=' + dateToday, date: dateToday },
       { url: 'https://www.yuzmanim.com/mincha?date=' + dateTom, date: dateTom },
-      { url: 'https://www.yuzmanim.com/maariv?date=' + dateToday, date: dateToday },
       { url: 'https://www.yuzmanim.com/maariv?date=' + dateTom, date: dateTom }
     ];
 
@@ -751,41 +744,39 @@
         } catch(e) { return []; }
       }));
 
-      // If a newer fetch has already started, abort this update to prevent "swapping"
-      if (currentFetchId !== fetchCounter) {
-        if (fetchCounter === currentFetchId + 1) {
-           // We are only one behind, but still abort. 
-           // No need to reset isFetchingMinyanim here because the newer one will do it.
-        }
-        return;
-      }
+      if (currentFetchId !== fetchCounter) return;
 
       let allMinyanim = [].concat(...fetchResults);
       let uniqueMinyanim = [];
       
       allMinyanim.forEach(m => {
-        if (m.parsedTime <= now) return; // STRICT FUTURE ONLY
-
         const locKey = m.location.toLowerCase().replace(/\s+/g, '');
         const typeKey = m.type.toLowerCase();
-        
         const exists = uniqueMinyanim.some(u =>
           u.type.toLowerCase() === typeKey &&
           u.location.toLowerCase().replace(/\s+/g, '') === locKey &&
           Math.abs(u.parsedTime - m.parsedTime) < 60000
         );
-        
         if (!exists) uniqueMinyanim.push(m);
       });
 
       uniqueMinyanim.sort((a, b) => a.parsedTime - b.parsedTime);
-      minyanimData = uniqueMinyanim;
+
+      // Diff check: only update if the count or stringified content has changed
+      const newDataStr = JSON.stringify(uniqueMinyanim);
+      const oldDataStr = JSON.stringify(minyanimData);
+      
+      if (newDataStr !== oldDataStr) {
+        minyanimData = uniqueMinyanim;
+        localStorage.setItem('cachedMinyanim', newDataStr);
+        localStorage.setItem('cachedMinyanimDate', dateToday);
+      }
+
       lastMinyanFetch = Date.now();
       isFetchingMinyanim = false;
       updateNextZmanDisplay();
     } catch (e) {
       if (currentFetchId === fetchCounter) {
-        console.error("Critical error in fetchYUMinyanim:", e);
         isFetchingMinyanim = false;
         updateNextZmanDisplay();
       }
@@ -1172,6 +1163,7 @@
 
   function updateNextZmanDisplay() {
     const now = new Date();
+    const day = now.getDay();
     const layout = localStorage.layout || (window.innerWidth <= 1024 ? 'split' : 'retro');
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
@@ -1225,7 +1217,7 @@
             if (uStyle === 'flash') urgentClass += ' flash-mode';
             else if (uStyle === 'fade') urgentClass += ' fade-mode';
           }
-          html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
+          html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">${ZMANIM_DB[key].icon} ${timeStr}: ${ZMANIM_DB[key].he}</div>`;
         } else if (i < upcomingMinyanim.length && i < rowCount) {
           html += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
         }
@@ -1236,32 +1228,38 @@
       // Separator
       html += `<div style="background: rgba(255,255,255,0.1); align-self: stretch; margin: 2px 0;"></div>`;
       
-      // Column 2: Minyanim
+    // Column 2: Minyanim
       html += `<div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden;">`;
       if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕍 YU Minyanim</div>`;
-      if (upcomingMinyanim.length > 0) {
-        for (let i = 0; i < rowCount; i++) {
-          const item = upcomingMinyanim[i];
-          if (item) {
-            const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-            const isTom = item.parsedTime.getDate() !== now.getDate();
-            const tomTxt = isTom ? ' <span style="font-size: 0.8em; opacity: 0.8;">(Tom)</span>' : '';
-            let urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
-            if (urgentClass) {
-              if (uStyle === 'flash') urgentClass += ' flash-mode';
-              else if (uStyle === 'fade') urgentClass += ' fade-mode';
-            }
-            html += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fontSize};" title="${item.type}: ${item.location}">${timeStr}${tomTxt}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
-          } else if (i < upcomingZmanim.length && i < rowCount) {
-            html += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fontSize};">--</div>`;
-          }
+      
+      const cl = currentZmanimData.candleLighting;
+      const sk = currentZmanimData.sunset;
+      const hz = currentZmanimData.tzeit85deg;
+
+      if (day === 5) {
+        const hasRegularMinyanim = upcomingMinyanim.some(m => m.parsedTime.getDate() === now.getDate());
+        if (hasRegularMinyanim) {
+          html += renderMinyanimList(upcomingMinyanim, rowCount, fontSize, now, uStyle, upcomingZmanim);
+        } else if (cl && now < cl) {
+          html += `<div style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">🕯️ ${cl.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}: Candle Lighting</div>`;
+          if (sk && rowCount > 1) html += `<div style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">🌇 ${sk.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}: Shkiya</div>`;
+        } else {
+          html += `<div style="padding: 2px 8px; font-size: 1.1em; color: #ffcc00; font-weight: bold; text-align: center; width: 100%;">🕯️ It's Shabbos now!</div>`;
         }
+      } else if (day === 6) {
+        if (hz && now < hz) {
+          html += `<div style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">🌌 ${hz.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}: Havdala Time</div>`;
+        } else {
+          html += renderMinyanimList(upcomingMinyanim, rowCount, fontSize, now, uStyle, upcomingZmanim);
+        }
+      } else if (upcomingMinyanim.length > 0) {
+        html += renderMinyanimList(upcomingMinyanim, rowCount, fontSize, now, uStyle, upcomingZmanim);
       } else {
-        const msg = lastMinyanFetch === 0 ? "Loading schedule..." : "No upcoming Minyanim found today";
+        const msg = lastMinyanFetch === 0 ? "Loading schedule..." : "No upcoming Minyanim found";
         html += `<div style="padding: 2px 8px; font-size: 0.7em; opacity: 0.6; font-style: italic;">${msg}</div>`;
       }
-      html += `</div>`;
       
+      html += `</div>`;
       html += `</div>`;
       
       nextZmanEl.innerHTML = html;
@@ -1276,16 +1274,11 @@
       nextZmanEl.style.textAlign = "left";
     } else if (upcomingZmanim.length > 0) {
       // Single list fallback (if YU disabled or no minyanim found)
-      const item = upcomingZmanim[0];
-      const time = currentZmanimData[item];
-      let isUrg = isUrgent(time);
-      nextZmanEl.classList.toggle('urgent-zman', isUrg);
-      nextZmanEl.classList.toggle('flash-mode', isUrg && uStyle === 'flash');
-      nextZmanEl.classList.toggle('fade-mode', isUrg && uStyle === 'fade');
+      const uStyle = localStorage.urgentStyle || 'flash';
 
-      if (isSidebar || isPhone) {
+      if (isSidebar || isPhone || isSplit) {
         let html = "";
-        const count = isPhone ? 4 : 6;
+        const count = mLimit;
         upcomingZmanim.slice(0, count).forEach(key => {
           const time = currentZmanimData[key];
           const timeStr = time.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
@@ -1294,14 +1287,24 @@
             if (uStyle === 'flash') urgentClass += ' flash-mode';
             else if (uStyle === 'fade') urgentClass += ' fade-mode';
           }
-          html += `<div class="${urgentClass}" style="padding: 4px 8px; border-radius: 8px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">${timeStr}: ${ZMANIM_DB[key].he}</div>`;
+          html += `<div class="${urgentClass}" style="padding: 4px 8px; border-radius: 8px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">${ZMANIM_DB[key].icon} ${timeStr}: ${ZMANIM_DB[key].he}</div>`;
         });
         nextZmanEl.innerHTML = html;
         nextZmanEl.style.display = "flex";
         nextZmanEl.style.flexDirection = "column";
         nextZmanEl.style.alignItems = "flex-start";
         nextZmanEl.style.textAlign = "left";
+        nextZmanEl.style.background = "rgba(0, 0, 0, 0.45)";
+        nextZmanEl.style.padding = isSplit ? "10px 16px" : "14px 20px";
+        nextZmanEl.style.borderRadius = "24px";
+        nextZmanEl.style.border = "1px solid rgba(0, 229, 255, 0.25)";
       } else {
+        const item = upcomingZmanim[0];
+        const time = currentZmanimData[item];
+        let isUrg = isUrgent(time);
+        nextZmanEl.classList.toggle('urgent-zman', isUrg);
+        nextZmanEl.classList.toggle('flash-mode', isUrg && uStyle === 'flash');
+        nextZmanEl.classList.toggle('fade-mode', isUrg && uStyle === 'fade');
         const diff = time - now;
         const h_cd = Math.floor(diff/3600000);
         const m_cd = Math.floor((diff%3600000)/60000);
@@ -1333,14 +1336,36 @@
     }
   }
 
+  function renderMinyanimList(list, count, fSize, currNow, style, zmanimList) {
+    let listHtml = "";
+    for (let i = 0; i < count; i++) {
+      const item = list[i];
+      if (item) {
+        const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        const isTom = item.parsedTime.getDate() !== currNow.getDate();
+        const tomTxt = isTom ? ' <span style="font-size: 0.8em; opacity: 0.8;">(Tom)</span>' : '';
+        let urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
+        if (urgentClass) {
+          if (style === 'flash') urgentClass += ' flash-mode';
+          else if (style === 'fade') urgentClass += ' fade-mode';
+        }
+        listHtml += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fSize};" title="${item.type}: ${item.location}">${timeStr}${tomTxt}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
+      } else if (i < zmanimList.length && i < count) {
+        listHtml += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fSize};">--</div>`;
+      }
+    }
+    return listHtml;
+  }
+
   function initGeolocationAndZmanim() {
     const defaultLat = 40.7128, defaultLon = -74.0060; // NY
     const cachedLat = localStorage.getItem('lastLat');
     const cachedLon = localStorage.getItem('lastLon');
 
     // 1. Immediately start with something so we aren't "stuck"
-    const startLat = cachedLat ? parseFloat(cachedLat) : defaultLat;
-    const startLon = cachedLon ? parseFloat(cachedLon) : defaultLon;
+    let startLat = defaultLat, startLon = defaultLon;
+    if (cachedLat && !isNaN(parseFloat(cachedLat))) startLat = parseFloat(cachedLat);
+    if (cachedLon && !isNaN(parseFloat(cachedLon))) startLon = parseFloat(cachedLon);
     
     fetchZmanim(startLat, startLon);
     fetchWeather(startLat, startLon);
@@ -1485,6 +1510,20 @@
   }
 
   function initializeApp() {
+    // Load and revive cached minyanim
+    const cached = localStorage.getItem('cachedMinyanim');
+    const cachedDate = localStorage.getItem('cachedMinyanimDate');
+    const todayStr = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
+    if (cached && cachedDate === todayStr) {
+      try {
+        minyanimData = JSON.parse(cached, (key, value) => {
+          if (key === 'parsedTime') return new Date(value);
+          return value;
+        });
+      } catch(e) { console.warn("Failed to parse cached minyanim", e); }
+    }
+
+    fetchYUMinyanim();
     const ez = localStorage.getItem('enabledZmanim');
     if (ez) {
       const parsed = JSON.parse(ez);
@@ -1494,9 +1533,8 @@
     }
     applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
     setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
-    setInterval(fetchYUMinyanim, 10*60000); // Updated to 10 minutes
+    setInterval(fetchYUMinyanim, 15*60000); // Updated to 15 minutes
     initGeolocationAndZmanim();
-    fetchYUMinyanim();
 
     // Auto fullscreen on first click if enabled
     const autoFsHandler = () => {

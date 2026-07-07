@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Nightstand Clock V5 | Zmanim Ambient Clock</title>
-<!-- Load @hebcal/core for local zmanim calculation (prevents rate limiting) -->
 <script src="https://cdn.jsdelivr.net/npm/@hebcal/core@latest/dist/bundle.min.js"></script>
 <style>
   /* ----- GLOBAL RESET & DESIGN SYSTEM ----- */
@@ -122,19 +121,12 @@
     display: none;
   }
 
-  .weekday {
-    font-size: calc(2.2vw * var(--weekday-scale));
-    font-weight: 500;
-    letter-spacing: 2px;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    transition: font-size 0.1s ease;
-  }
+  /* Base styles replaced by .weekday-container */
 
   /* Layout styles */
   .retro .time-line { font-size: 18vw; }
-  .retro .main-hour-minute, .retro .time-extras, .retro .date, .retro .weekday { font-weight: 700; }
-  .glow-on .retro .main-hour-minute, .glow-on .retro .time-extras, .glow-on .retro .date, .glow-on .retro .weekday { text-shadow: 0 0 8px currentColor; }
+  .retro .main-hour-minute, .retro .time-extras, .retro .date, .retro .weekday-container { font-weight: 700; }
+  .glow-on .retro .main-hour-minute, .glow-on .retro .time-extras, .glow-on .retro .date, .glow-on .retro .weekday-container { text-shadow: 0 0 8px currentColor; }
   
   .simple .time-line { font-size: 14vw; }
   .simple .main-hour-minute { font-weight: 400; }
@@ -142,14 +134,14 @@
   .minimal .main-hour-minute { font-weight: 300; }
   
   .split .time-line { font-size: 13vw; }
-  .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday {
+  .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday-container {
     font-weight: 600;
     color: var(--fg);
     background: none;
     -webkit-background-clip: initial;
     background-clip: initial;
   }
-  .glow-on .split .main-hour-minute, .glow-on .split .time-extras, .glow-on .split .date, .glow-on .split .weekday {
+  .glow-on .split .main-hour-minute, .glow-on .split .time-extras, .glow-on .split .date, .glow-on .split .weekday-container {
     text-shadow: 0 0 12px var(--fg), 0 0 24px rgba(0, 229, 255, 0.4);
   }
   .glow-on .split .time-extras {
@@ -165,7 +157,7 @@
     align-content: center;
     gap: 0;
   }
-  .split .weekday {
+  .split .weekday-container {
     order: 1;
     margin-bottom: 3vh;
     margin-right: 20px;
@@ -204,7 +196,16 @@
     margin: 0;
     gap: 0;
   }
-  .sidebar .weekday { grid-area: weekday; transform: translateY(-3vh); font-size: min(4vw, 5vh); justify-self: center; line-height: 0; }
+  .sidebar .weekday-container {
+    grid-area: weekday;
+    transform: translateY(-3vh);
+    justify-self: center;
+    display: flex;
+    align-items: center;
+  }
+  .sidebar .weekday-container span {
+    font-size: min(4vw, 5vh);
+  }
   .sidebar .time-line {
     grid-area: timeline;
     font-size: min(15vw, 25vh);
@@ -291,7 +292,16 @@
     gap: 8px;
     overflow-y: auto;
   }
-  .phone .weekday { grid-area: weekday; font-size: min(8vw, 5vh); margin-bottom: 0; line-height: 1.2; }
+  .phone .weekday-container {
+    grid-area: weekday;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  .phone .weekday-container span {
+    font-size: min(8vw, 5vh);
+    line-height: 1.2;
+  }
   .phone .time-line { grid-area: timeline; font-size: min(22vw, 18vh); position: relative; margin: 5px 0; }
   .phone .main-hour-minute { line-height: 0.9; }
   .phone .time-extras {
@@ -362,6 +372,29 @@
     .sidebar .time-line { font-size: 18vw; margin: 0; }
   }
   
+  .weekday-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(2.2vw * var(--weekday-scale));
+    font-weight: 500;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    transition: font-size 0.1s ease;
+  }
+  .weekday {
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
+  .weekday-container #location {
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+  }
   .date {
     font-size: 2.8vw;
     margin-top: 18px;
@@ -502,13 +535,13 @@
     50%, 100% { background-color: var(--urgent-c2, #000000); color: white; }
   }
   @keyframes urgentFade {
-    0%, 100% { 
-      background-color: var(--urgent-c1, #ff0000); 
+    0%, 100% {
+      background-color: var(--urgent-c1, #ff0000);
       border-color: var(--urgent-c1);
       box-shadow: 0 0 20px var(--urgent-c1);
     }
-    50% { 
-      background-color: var(--urgent-c2, #000000); 
+    50% {
+      background-color: var(--urgent-c2, #000000);
       border-color: var(--urgent-c2);
       box-shadow: 0 0 5px var(--urgent-c2);
     }
@@ -535,8 +568,8 @@
     .date { font-size: 6vw; }
     .weather { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
     .next-zman { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
-    .weekday { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 3vh; }
-    .split .date { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 3vh; }
+    .weekday-container { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 3vh; }
+    .split .weekday-container { margin-bottom: 3vh; }
     .retro .time-line { font-size: 22vw; }
     .simple .time-line { font-size: 18vw; }
     .minimal .time-line { font-size: 14vw; }
@@ -549,7 +582,11 @@
 <button id="gear" aria-label="settings">⚙️</button>
 
 <div id="clock" class="sidebar">
-  <div class="weekday" id="weekday"></div>
+  <div class="weekday-container" id="weekdayContainer">
+    <span id="location"></span>
+    <span id="weekdaySeparator" style="display: none; margin: 0 18px; opacity: 0.7;">·</span>
+    <span class="weekday" id="weekday"></span>
+  </div>
   <div class="time-line">
     <span class="main-hour-minute" id="mainTime"></span>
     <div class="time-extras">
@@ -666,6 +703,10 @@
       </div>
 
       <div id="tab-display" class="tab-content">
+        <label>📍 Show Location</label>
+        <select id="showLocation"><option value="true">Show</option><option value="false">Hide</option></select>
+        <label>📍 Location Format</label>
+        <select id="locationFmt"><option value="long">Long (City, State)</option><option value="short">Short (City only)</option></select>
         <label>✨ Glow Effect</label>
         <select id="glowEnabled"><option value="true">On</option><option value="false">Off</option></select>
         <label>🖥️ Auto Fullscreen on start</label>
@@ -710,7 +751,7 @@
   let zmanimError = null;
   let lastWeatherData = null;
 
-  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen'), urgentStyleSelect = document.getElementById('urgentStyle'), urgentColor1Input = document.getElementById('urgentColor1'), urgentColor2Input = document.getElementById('urgentColor2'), urgentFlashSpeedInput = document.getElementById('urgentFlashSpeed'), urgentFlashSettings = document.getElementById('urgentFlashSettings');
+  const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen'), urgentStyleSelect = document.getElementById('urgentStyle'), urgentColor1Input = document.getElementById('urgentColor1'), urgentColor2Input = document.getElementById('urgentColor2'), urgentFlashSpeedInput = document.getElementById('urgentFlashSpeed'), urgentFlashSettings = document.getElementById('urgentFlashSettings'), showLocationSelect = document.getElementById('showLocation'), locationFmtSelect = document.getElementById('locationFmt');
 
   async function fetchYUMinyanim() {
     const currentFetchId = ++fetchCounter;
@@ -722,7 +763,6 @@
     const tom = new Date(now); tom.setDate(tom.getDate() + 1);
     const dateTom = tom.getFullYear() + '-' + String(tom.getMonth() + 1).padStart(2, '0') + '-' + String(tom.getDate()).padStart(2, '0');
 
-    // Fetch basic pages for today and tomorrow to cover all bases
     const configs = [
       { url: 'https://www.yuzmanim.com/shacharis', date: dateToday },
       { url: 'https://www.yuzmanim.com/mincha', date: dateToday },
@@ -762,7 +802,6 @@
 
       uniqueMinyanim.sort((a, b) => a.parsedTime - b.parsedTime);
 
-      // Diff check: only update if the count or stringified content has changed
       const newDataStr = JSON.stringify(uniqueMinyanim);
       const oldDataStr = JSON.stringify(minyanimData);
       
@@ -787,19 +826,25 @@
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Ignore events in the "Passed Events" section of the homepage
+    const dateParts = pageDateStr.split('-');
+    const expectedDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+    const expectedDayName = expectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+
     const passedSection = doc.getElementById('passed_events');
     const allRows = Array.from(doc.querySelectorAll('.event'));
     const results = [];
     
     const noiseWords = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "January", "February", "March", "April", "June", "July", "August", "September", "October", "November", "December", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const noiseRegex = new RegExp('\\b(' + noiseWords.join('|') + ')\\b', 'i');
 
     allRows.forEach(row => {
-      // Skip if row is inside passed events container
       if (passedSection && passedSection.contains(row)) return;
-      // Skip if row has "past" styling (grey color)
       if (row.style.color === 'rgb(108, 117, 125)' || row.getAttribute('style')?.includes('#6C757D')) return;
+
+      const rowText = row.textContent || "";
+      const mentionedDay = daysOfWeek.find(d => rowText.includes(d));
+      if (mentionedDay && mentionedDay !== expectedDayName) return;
 
       try {
         const typeEl = row.querySelector('.type');
@@ -812,7 +857,7 @@
           const timeStr = timeEl.textContent.trim().toUpperCase();
           
           if (location.length < 2 || location.includes("Logout") || location.includes("Menu")) return;
-          if (noiseRegex.test(location)) return;
+          if (noiseRegex.test(location) && !daysOfWeek.includes(location)) return;
 
           const dateToUse = pageDateStr || (now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0'));
           let parsedTime = parseTimeStringWithDate(timeStr, dateToUse);
@@ -940,7 +985,6 @@
     const weatherFg = (localStorage.weatherColorPreset === 'custom') ? (localStorage.weatherCustomColor || '#00e5ff') : fg;
     document.documentElement.style.setProperty('--weather-fg', weatherFg);
     
-    // Set Weather Icon Color
     let iconColor = 'inherit';
     const iconColorMode = localStorage.weatherIconColor || 'default';
     if (iconColorMode === 'theme') iconColor = fg;
@@ -954,14 +998,11 @@
     document.documentElement.style.setProperty('--weekday-scale', localStorage.weekdaySize || "1.2");
     document.querySelector('.time-extras').classList.toggle('hide-extras', localStorage.showTimeExtras === 'false');
     
-    // Glow effect toggle
     document.body.classList.toggle('glow-on', localStorage.glowEnabled !== 'false');
 
-    // Urgent Highlight Style
     const uSpeed = localStorage.urgentFlashSpeed || '0.5';
     const uC1 = localStorage.urgentColor1 || '#ff0000';
     const uC2 = localStorage.urgentColor2 || '#000000';
-    // Double the value so the speed represents the duration of ONE directional transition
     document.documentElement.style.setProperty('--urgent-speed', (uSpeed * 2) + 's');
     document.documentElement.style.setProperty('--urgent-c1', uC1);
     document.documentElement.style.setProperty('--urgent-c2', uC2);
@@ -980,17 +1021,14 @@
     ampmSpan.textContent = ampm;
     weekdayEl.textContent = now.toLocaleDateString([], { weekday: 'long' }).toUpperCase();
     
-    // Shabbat Mode Check (using pre-calculated currentZmanimData)
     try {
-      const day = now.getDay(); // 5=Fri, 6=Sat
+      const day = now.getDay();
       if (day === 5 && currentZmanimData.candleLighting && now >= currentZmanimData.candleLighting) {
         weekdayEl.textContent = "🕯️ שבת קודש 🕯️";
       } else if (day === 6 && currentZmanimData.tzeit85deg && now < currentZmanimData.tzeit85deg) {
         weekdayEl.textContent = "🕯️ שבת קודש 🕯️";
       }
-    } catch(e) {
-      console.warn("Shabbat mode check failed:", e);
-    }
+    } catch(e) {}
 
     const df = localStorage.dateFmt || 'medium';
     const layout = localStorage.layout || (window.innerWidth <= 1024 ? 'split' : 'retro');
@@ -1100,9 +1138,7 @@
     } catch(e) { weatherEl.textContent = "🌡️ offline"; }
   }
 
-  let lastFetchedLat = null, lastFetchedLon = null;
-
-  async function fetchZmanim(lat, lon, specificDate = null) {
+  function fetchZmanim(lat, lon, specificDate = null) {
     const latNum = parseFloat(lat);
     const lonNum = parseFloat(lon);
     
@@ -1111,8 +1147,8 @@
       return;
     }
 
-    const h = window.hebcal || hebcal;
-    if (typeof h === 'undefined') {
+    const h = window.hebcal || (typeof hebcal !== 'undefined' ? hebcal : undefined);
+    if (!h || !h.Location || !h.Zmanim) {
       zmanimError = "⚠️ Library loading...";
       nextZmanEl.textContent = zmanimError;
       return;
@@ -1120,7 +1156,7 @@
 
     try {
       const d = specificDate || new Date();
-      const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem";
       
       const gloc = new h.Location(latNum, lonNum, false, tzid);
       const zmanim = new h.Zmanim(gloc, d);
@@ -1131,7 +1167,6 @@
           const res = zmanim[methodName](...args);
           return res ? new Date(res) : null;
         } catch(e) {
-          console.warn(`Zmanim method ${methodName} failed:`, e);
           return null;
         }
       };
@@ -1147,7 +1182,7 @@
         minchaGedola: safeGet('minchaGedola'),
         plagHaMincha: safeGet('plagHaMincha'),
         sunset: safeGet('shkiah'),
-        earliestShemaSchachter: safeGet('tzeit', 6.0), // 6.0 degrees corresponds to 24 minutes as degrees in Jerusalem at equinox
+        earliestShemaSchachter: safeGet('tzeit', 6.0),
         candleLighting: safeGet('candleLighting'),
         tzeit85deg: safeGet('tzeit')
       };
@@ -1155,7 +1190,6 @@
       zmanimError = null;
       updateNextZmanDisplay();
     } catch (e) {
-      console.error("Local Zmanim calculation failed:", e);
       zmanimError = "⚠️ Calculation error";
       nextZmanEl.textContent = zmanimError;
     }
@@ -1186,15 +1220,13 @@
       
     const upcomingZmanim = sortedKeys.filter(k => enabledZmanKeys.has(k) && currentZmanimData[k] > now).slice(0, mLimit);
     
-    // Real-time filter: Ensure we only show minyanim that are still in the future
-    const upcomingMinyanim = (localStorage.showYUMinyanim === 'true') 
-      ? minyanimData.filter(m => m.parsedTime > now).slice(0, mLimit) 
+    const upcomingMinyanim = (localStorage.showYUMinyanim === 'true')
+      ? minyanimData.filter(m => m.parsedTime > now).slice(0, mLimit)
       : [];
 
     const uStyle = localStorage.urgentStyle || 'flash';
 
     if (localStorage.showYUMinyanim === 'true' && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
-      // For split view, force a compact row count (max 3)
       const maxRows = isSplit ? 3 : Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
       const rowCount = Math.min(maxRows, mLimit);
       
@@ -1204,7 +1236,6 @@
       
       let html = `<div style="display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: ${gridGap}; align-items: start; min-width: ${minWidth};">`;
       
-      // Column 1: Zmanim
       html += `<div style="display: flex; flex-direction: column; gap: 2px;">`;
       if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕯️ Zmanim</div>`;
       for (let i = 0; i < rowCount; i++) {
@@ -1225,10 +1256,8 @@
       if (upcomingZmanim.length === 0) html += `<div style="padding: 2px 8px; font-size: 0.7em; opacity: 0.6;">No more zmanim</div>`;
       html += `</div>`;
       
-      // Separator
       html += `<div style="background: rgba(255,255,255,0.1); align-self: stretch; margin: 2px 0;"></div>`;
       
-    // Column 2: Minyanim
       html += `<div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden;">`;
       if (!isSplit) html += `<div style="font-size: 0.55em; opacity: 0.5; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; text-align: left; padding-left: 8px;">🕍 YU Minyanim</div>`;
       
@@ -1273,7 +1302,6 @@
       nextZmanEl.style.maxWidth = "95vw";
       nextZmanEl.style.textAlign = "left";
     } else if (upcomingZmanim.length > 0) {
-      // Single list fallback (if YU disabled or no minyanim found)
       const uStyle = localStorage.urgentStyle || 'flash';
 
       if (isSidebar || isPhone || isSplit) {
@@ -1326,8 +1354,8 @@
       
       if (!isDataForTomorrow && Object.keys(currentZmanimData).length > 0) {
         nextZmanEl.textContent = "🌙 Fetching tomorrow...";
-        const lat = localStorage.getItem('lastLat') || 40.7128;
-        const lon = localStorage.getItem('lastLon') || -74.0060;
+        const lat = localStorage.getItem('lastLat') || 32.7940;
+        const lon = localStorage.getItem('lastLon') || 35.5312;
         fetchZmanim(lat, lon, tom);
       } else {
         nextZmanEl.textContent = "🌙 End of today's zmanim";
@@ -1357,33 +1385,150 @@
     return listHtml;
   }
 
+  async function fetchLocationName(lat, lon) {
+    try {
+      const resp = await fetch(`https://api-bdc.io/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+      if (resp.ok) {
+        const data = await resp.json();
+        let longName = "";
+        let shortName = "";
+        
+        const cityOrLocality = data.city || data.locality;
+        if (cityOrLocality) {
+          shortName = cityOrLocality;
+          const statePart = data.principalSubdivisionCode ? data.principalSubdivisionCode.split('-')[1] : null;
+          if (statePart) {
+            longName = `${cityOrLocality}, ${statePart}`;
+          } else if (data.principalSubdivision) {
+            longName = `${cityOrLocality}, ${data.principalSubdivision}`;
+          } else {
+            longName = cityOrLocality;
+          }
+        } else if (data.principalSubdivision) {
+          shortName = data.principalSubdivision;
+          longName = data.principalSubdivision;
+        }
+        
+        if (longName && shortName) {
+          localStorage.setItem('locationLong', longName);
+          localStorage.setItem('locationShort', shortName);
+          updateLocationDisplay();
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching location name:", e);
+    }
+  }
+
+  function updateLocationDisplay() {
+    const locEl = document.getElementById('location');
+    const sepEl = document.getElementById('weekdaySeparator');
+    if (!locEl) return;
+
+    const showLoc = localStorage.showLocation !== 'false';
+    if (!showLoc) {
+      locEl.textContent = "";
+      if (sepEl) sepEl.style.display = 'none';
+      return;
+    }
+
+    const fmt = localStorage.locationFmt || 'long';
+    let name = fmt === 'short' ? localStorage.getItem('locationShort') : localStorage.getItem('locationLong');
+    if (!name) {
+      const legacy = localStorage.getItem('locationName');
+      if (legacy) {
+        if (fmt === 'short') {
+          name = legacy.split(',')[0].trim();
+        } else {
+          name = legacy;
+        }
+      }
+    }
+
+    locEl.textContent = name || "";
+    if (sepEl) {
+      sepEl.style.display = name ? 'inline-block' : 'none';
+    }
+  }
+
   function initGeolocationAndZmanim() {
-    const defaultLat = 40.7128, defaultLon = -74.0060; // NY
+    // Default to Tiberias coordinates if everything fails
+    const defaultLat = 32.7940, defaultLon = 35.5312;
     const cachedLat = localStorage.getItem('lastLat');
     const cachedLon = localStorage.getItem('lastLon');
 
-    // 1. Immediately start with something so we aren't "stuck"
     let startLat = defaultLat, startLon = defaultLon;
     if (cachedLat && !isNaN(parseFloat(cachedLat))) startLat = parseFloat(cachedLat);
     if (cachedLon && !isNaN(parseFloat(cachedLon))) startLon = parseFloat(cachedLon);
     
     fetchZmanim(startLat, startLon);
     fetchWeather(startLat, startLon);
+    fetchLocationName(startLat, startLon);
 
-    // 2. Try to get actual location in the background
+    const updateLocation = (latitude, longitude) => {
+      if (!cachedLat || Math.abs(parseFloat(cachedLat) - latitude) > 0.01) {
+        localStorage.setItem('lastLat', latitude);
+        localStorage.setItem('lastLon', longitude);
+        fetchZmanim(latitude, longitude);
+        fetchWeather(latitude, longitude);
+        fetchLocationName(latitude, longitude);
+      }
+    };
+
+    // Attempt browser Geolocation first
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(p => {
-        const { latitude, longitude } = p.coords;
-        // Only update if it's significantly different to avoid unnecessary flashes
-        if (!cachedLat || Math.abs(parseFloat(cachedLat) - latitude) > 0.01) {
-          localStorage.setItem('lastLat', latitude);
-          localStorage.setItem('lastLon', longitude);
-          fetchZmanim(latitude, longitude);
-          fetchWeather(latitude, longitude);
-        }
+        updateLocation(p.coords.latitude, p.coords.longitude);
       }, (err) => {
-        console.warn("Geolocation failed or denied:", err.message);
+        console.warn("Browser Geolocation failed:", err.message, "- Attempting IP fallback");
+        // Fallback to IP-based Geolocation if browser denies/fails (common for local files)
+        fetch('https://get.geojs.io/v1/ip/geo.json')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.latitude && data.longitude) {
+              updateLocation(parseFloat(data.latitude), parseFloat(data.longitude));
+              let longName = "";
+              let shortName = "";
+              if (data.city) {
+                shortName = data.city;
+                if (data.region) {
+                  longName = `${data.city}, ${data.region}`;
+                } else {
+                  longName = data.city;
+                }
+              }
+              if (longName && shortName) {
+                localStorage.setItem('locationLong', longName);
+                localStorage.setItem('locationShort', shortName);
+                updateLocationDisplay();
+              }
+            }
+          }).catch(e => console.error("IP Fallback failed:", e));
       }, { timeout: 10000 });
+    } else {
+      // Fallback for strict context blocks
+      fetch('https://get.geojs.io/v1/ip/geo.json')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.latitude && data.longitude) {
+            updateLocation(parseFloat(data.latitude), parseFloat(data.longitude));
+            let longName = "";
+            let shortName = "";
+            if (data.city) {
+              shortName = data.city;
+              if (data.region) {
+                longName = `${data.city}, ${data.region}`;
+              } else {
+                longName = data.city;
+              }
+            }
+            if (longName && shortName) {
+              localStorage.setItem('locationLong', longName);
+              localStorage.setItem('locationShort', shortName);
+              updateLocationDisplay();
+            }
+          }
+        }).catch(e => console.error("IP Fallback failed:", e));
     }
   }
 
@@ -1442,13 +1587,15 @@
     localStorage.urgentColor1 = urgentColor1Input.value;
     localStorage.urgentColor2 = urgentColor2Input.value;
     localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
+    localStorage.showLocation = showLocationSelect.value;
+    localStorage.locationFmt = locationFmtSelect.value;
     localStorage.setItem('alarms', JSON.stringify(alarms));
     
     localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
     localStorage.minyanCount = document.getElementById('minyanCount').value;
     localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
     
-    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); fetchYUMinyanim(); modal.style.display = 'none';
+    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); fetchYUMinyanim(); updateLocationDisplay(); modal.style.display = 'none';
   }
 
   function openModalWithCurrentSettings() {
@@ -1474,6 +1621,9 @@
     urgentFlashSpeedInput.value = localStorage.urgentFlashSpeed || '0.5';
     urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
     
+    showLocationSelect.value = localStorage.showLocation || 'true';
+    locationFmtSelect.value = localStorage.locationFmt || 'long';
+    
     document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
     document.getElementById('minyanCount').value = localStorage.minyanCount || 3;
     document.getElementById('urgencyThreshold').value = localStorage.urgencyThreshold || 15;
@@ -1496,6 +1646,9 @@
     localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value;
     localStorage.showWeatherTimeline = showWeatherTimelineSelect.value; localStorage.layout = layoutSelect.value;
     localStorage.weatherFmt = weatherFmtSelect.value; localStorage.font = fontSelect.value;
+    localStorage.dateFmt = dateFmtSelect.value;
+    localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
+    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
     localStorage.weatherIconColor = weatherIconColorSelect.value;
     localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
     localStorage.glowEnabled = glowEnabledSelect.value;
@@ -1504,13 +1657,21 @@
     localStorage.urgentColor1 = urgentColor1Input.value;
     localStorage.urgentColor2 = urgentColor2Input.value;
     localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
+    localStorage.showLocation = showLocationSelect.value;
+    localStorage.locationFmt = locationFmtSelect.value;
+    
+    localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
+    localStorage.minyanCount = document.getElementById('minyanCount').value;
+    localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
+
     weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
     urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
-    applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay();
+    applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay(); updateLocationDisplay();
   }
 
   function initializeApp() {
-    // Load and revive cached minyanim
+    updateLocationDisplay();
+
     const cached = localStorage.getItem('cachedMinyanim');
     const cachedDate = localStorage.getItem('cachedMinyanimDate');
     const todayStr = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
@@ -1520,7 +1681,7 @@
           if (key === 'parsedTime') return new Date(value);
           return value;
         });
-      } catch(e) { console.warn("Failed to parse cached minyanim", e); }
+      } catch(e) {}
     }
 
     fetchYUMinyanim();
@@ -1533,10 +1694,9 @@
     }
     applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
     setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
-    setInterval(fetchYUMinyanim, 15*60000); // Updated to 15 minutes
+    setInterval(fetchYUMinyanim, 15*60000);
     initGeolocationAndZmanim();
 
-    // Auto fullscreen on first click if enabled
     const autoFsHandler = () => {
       if (localStorage.autoFullscreen !== 'false' && !document.fullscreenElement && !document.webkitFullscreenElement) {
         toggleFullscreen();
@@ -1564,8 +1724,9 @@
   advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
   modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
-  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect, urgentStyleSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
-  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput, urgentColor1Input, urgentColor2Input, urgentFlashSpeedInput].forEach(i => i.addEventListener('input', livePreviewAdvanced));
+  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect, urgentStyleSelect, dateFmtSelect, zmanDisplayTypeSelect, showNextZmanPrefixSelect, document.getElementById('showYUMinyanim'), showLocationSelect, locationFmtSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
+  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput, urgentColor1Input, urgentColor2Input, urgentFlashSpeedInput, document.getElementById('minyanCount'), document.getElementById('urgencyThreshold')].forEach(i => i.addEventListener('input', livePreviewAdvanced));
   initializeApp();
 </script>
 </body>
+</html>

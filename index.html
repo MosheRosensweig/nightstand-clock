@@ -83,6 +83,8 @@
     align-items: center;
     padding: 2vh;
     box-sizing: border-box;
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
   }
 
   /* TIME LINE */
@@ -575,6 +577,101 @@
     .minimal .time-line { font-size: 14vw; }
     .split .time-line { font-size: 16vw; }
   }
+
+  /* Zoom and Position display adjustments */
+  .display-adjustment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    background: rgba(20, 25, 40, 0.5);
+    border-radius: 28px;
+    padding: 16px;
+    margin-top: 12px;
+    border: 1px solid rgba(0, 229, 255, 0.15);
+  }
+  .adj-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .adj-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #bbd4ff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .adj-val {
+    color: var(--fg);
+    font-family: monospace;
+  }
+  .adj-buttons {
+    display: flex;
+    gap: 6px;
+  }
+  .adj-buttons button {
+    flex: 1;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: rgba(30, 35, 55, 0.9);
+    border: 1px solid rgba(0, 229, 255, 0.25);
+    border-radius: 20px;
+    color: #eef5ff;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .adj-buttons button:hover {
+    background: #1f2a46;
+    border-color: var(--fg);
+    transform: translateY(-1px);
+  }
+  .adj-buttons button.reset-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #bbd4ff;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+  .adj-buttons button.reset-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #bbd4ff;
+  }
+  .reset-all-btn {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    color: #ff453a;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 12px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .reset-all-btn:hover {
+    background: rgba(255, 59, 48, 0.25);
+    border-color: #ff453a;
+    transform: translateY(-1px);
+  }
+  
+  @media (max-width: 480px) {
+    .display-adjustment-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 </head>
 <body>
@@ -719,6 +816,33 @@
         <select id="dateFmt"><option value="long">Monday, June 1, 2026</option><option value="medium">Mon, Jun 1</option><option value="numeric">6/1/2026</option></select>
         <label>✍️ Clock font family</label>
         <select id="font"><option value="'Inter', 'SF Mono', monospace">Digital Mono</option><option value="'Segoe UI', 'Inter', sans-serif">Modern Sans</option><option value="'Cormorant Garamond', serif">Classic Serif</option></select>
+
+        <label>🔍 Screen Zoom & Shift</label>
+        <div class="display-adjustment-grid">
+          <div class="adj-group">
+            <div class="adj-header">
+              <span>Zoom</span>
+              <span class="adj-val" id="zoomVal">100%</span>
+            </div>
+            <div class="adj-buttons">
+              <button type="button" id="zoomOutBtn" title="Zoom Out">➖</button>
+              <button type="button" class="reset-btn" id="resetZoomBtn">Reset</button>
+              <button type="button" id="zoomInBtn" title="Zoom In">➕</button>
+            </div>
+          </div>
+          <div class="adj-group">
+            <div class="adj-header">
+              <span>Vertical Shift</span>
+              <span class="adj-val" id="yVal">0px</span>
+            </div>
+            <div class="adj-buttons">
+              <button type="button" id="moveDownBtn" title="Move Down">⬇️</button>
+              <button type="button" class="reset-btn" id="resetYBtn">Reset</button>
+              <button type="button" id="moveUpBtn" title="Move Up">⬆️</button>
+            </div>
+          </div>
+          <button type="button" class="reset-all-btn" id="resetAllAdjBtn">🔄 Reset All Adjustments</button>
+        </div>
       </div>
     </div>
     <div class="button-group">
@@ -752,6 +876,26 @@
   let lastWeatherData = null;
 
   const weekdayEl = document.getElementById('weekday'), mainTimeSpan = document.getElementById('mainTime'), secondsSmallSpan = document.getElementById('secondsSmall'), ampmSpan = document.getElementById('ampmIndicator'), dateEl = document.getElementById('date'), weatherEl = document.getElementById('weather'), nextZmanEl = document.getElementById('nextZman'), weatherTimeline = document.getElementById('weatherTimeline'), timelineInner = document.getElementById('timelineInner'), clockContainer = document.getElementById('clock'), gearBtn = document.getElementById('gear'), modal = document.getElementById('modal'), layoutSelect = document.getElementById('layout'), colorPreset = document.getElementById('colorPreset'), customColor = document.getElementById('customColor'), bgPreset = document.getElementById('bgPreset'), customBg = document.getElementById('customBg'), weatherFmtSelect = document.getElementById('weatherFmt'), dateFmtSelect = document.getElementById('dateFmt'), fontSelect = document.getElementById('font'), advBtn = document.getElementById('advBtn'), advancedDiv = document.getElementById('advanced'), fullscreenBtn = document.getElementById('fullscreen'), saveBtn = document.getElementById('save'), weekdaySizeSelect = document.getElementById('weekdaySize'), showTimeExtrasSelect = document.getElementById('showTimeExtras'), zmanDisplayTypeSelect = document.getElementById('zmanDisplayType'), showNextZmanPrefixSelect = document.getElementById('showNextZmanPrefix'), zmanColorPresetSelect = document.getElementById('zmanColorPreset'), zmanCustomColorInput = document.getElementById('zmanCustomColor'), showWeatherTimelineSelect = document.getElementById('showWeatherTimeline'), weatherColorPresetSelect = document.getElementById('weatherColorPreset'), weatherCustomColorInput = document.getElementById('weatherCustomColor'), weatherIconColorSelect = document.getElementById('weatherIconColor'), weatherIconCustomColorInput = document.getElementById('weatherIconCustomColor'), glowEnabledSelect = document.getElementById('glowEnabled'), autoFullscreenSelect = document.getElementById('autoFullscreen'), urgentStyleSelect = document.getElementById('urgentStyle'), urgentColor1Input = document.getElementById('urgentColor1'), urgentColor2Input = document.getElementById('urgentColor2'), urgentFlashSpeedInput = document.getElementById('urgentFlashSpeed'), urgentFlashSettings = document.getElementById('urgentFlashSettings'), showLocationSelect = document.getElementById('showLocation'), locationFmtSelect = document.getElementById('locationFmt');
+
+  // Zoom and Position adjustment elements
+  const zoomValEl = document.getElementById('zoomVal');
+  const yValEl = document.getElementById('yVal');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const resetZoomBtn = document.getElementById('resetZoomBtn');
+  const moveDownBtn = document.getElementById('moveDownBtn');
+  const moveUpBtn = document.getElementById('moveUpBtn');
+  const resetYBtn = document.getElementById('resetYBtn');
+  const resetAllAdjBtn = document.getElementById('resetAllAdjBtn');
+
+  let clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
+  let clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
+
+  function applyClockTransform() {
+    clockContainer.style.transform = `translateY(${clockTranslateY}px) scale(${clockScale})`;
+    if (zoomValEl) zoomValEl.textContent = `${Math.round(clockScale * 100)}%`;
+    if (yValEl) yValEl.textContent = `${clockTranslateY}px`;
+  }
 
   async function fetchYUMinyanim() {
     const currentFetchId = ++fetchCounter;
@@ -1636,6 +1780,9 @@
     } else {
       enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
+    clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
+    clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
+    applyClockTransform();
     buildZmanimChecklist(); modal.style.display = 'flex';
   }
 
@@ -1692,7 +1839,7 @@
     } else {
       enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
-    applyThemeAndStyle(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
+    applyThemeAndStyle(); clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0; clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0; applyClockTransform(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
     setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
     setInterval(fetchYUMinyanim, 15*60000);
     initGeolocationAndZmanim();
@@ -1726,6 +1873,50 @@
   document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
   [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect, urgentStyleSelect, dateFmtSelect, zmanDisplayTypeSelect, showNextZmanPrefixSelect, document.getElementById('showYUMinyanim'), showLocationSelect, locationFmtSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
   [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput, urgentColor1Input, urgentColor2Input, urgentFlashSpeedInput, document.getElementById('minyanCount'), document.getElementById('urgencyThreshold')].forEach(i => i.addEventListener('input', livePreviewAdvanced));
+  zoomOutBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = Math.max(0.3, clockScale - 0.05);
+    localStorage.setItem('clockScale', clockScale);
+    applyClockTransform();
+  });
+  zoomInBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = Math.min(3.0, clockScale + 0.05);
+    localStorage.setItem('clockScale', clockScale);
+    applyClockTransform();
+  });
+  resetZoomBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = 1.0;
+    localStorage.setItem('clockScale', clockScale);
+    applyClockTransform();
+  });
+  moveDownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateY += 20;
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
+  moveUpBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateY -= 20;
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
+  resetYBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateY = 0;
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
+  resetAllAdjBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = 1.0;
+    clockTranslateY = 0;
+    localStorage.setItem('clockScale', clockScale);
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
   initializeApp();
 </script>
 </body>

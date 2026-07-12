@@ -590,6 +590,11 @@
     box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
     z-index: 1000 !important;
   }
+  .custom#clock * {
+    touch-action: none !important;
+    user-select: none;
+    -webkit-user-select: none;
+  }
 
   /* Zoom and Position display adjustments */
   .display-adjustment-grid {
@@ -707,10 +712,14 @@
   </div>
   <div class="date" id="date"></div>
   <div class="weather" id="weather">loading forecast...</div>
+  <div class="weather" id="weatherMain" style="display: none;">⛅ temp...</div>
+  <div class="weather" id="weatherHiLo" style="display: none;">📈 hi/lo...</div>
+  <div class="weather" id="weatherRain" style="display: none;">🌧️ rain...</div>
   <div class="weather-timeline" id="weatherTimeline">
     <div class="weather-timeline-inner" id="timelineInner"></div>
   </div>
   <div class="next-zman" id="nextZman">🕯️ Next Zman: --</div>
+  <div class="next-zman" id="yuMinyanim" style="display: none;">🕍 YU Minyanim: --</div>
 </div>
 
 <div class="modal" id="modal">
@@ -727,34 +736,31 @@
       <option value="phone">Phone View</option>
     </select>
     <div id="custom-layout-settings" style="display: none; background: rgba(20, 25, 40, 0.4); border-radius: 24px; padding: 14px 18px; border: 1px solid rgba(0, 229, 255, 0.25); margin-top: 10px; margin-bottom: 5px;">
-      <label style="margin-top: 0; font-size: 0.75rem; letter-spacing: 0.5px; color: #bbd4ff;">🔧 Custom Component Resets</label>
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: #eef5ff;">Location & Weekday</span>
-          <button type="button" class="reset-btn" onclick="resetComponentPos('weekdayContainer')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+      <label style="margin-top: 0; font-size: 0.75rem; letter-spacing: 0.5px; color: #bbd4ff;">🔧 Custom Layout Settings</label>
+      
+      <!-- Split/Separate Options -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(0, 229, 255, 0.15); padding-bottom: 10px;">
+        <div>
+          <label style="margin-top: 0; font-size: 0.7rem; color: #bbd4ff;">YU Minyanim</label>
+          <select id="separateMinyanim" onchange="toggleSeparateMinyanim()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; width: 100%; border: 1px solid rgba(0, 229, 255, 0.3); background: rgba(0, 0, 0, 0.4); color: white;">
+            <option value="false">Grouped</option>
+            <option value="true">Separate Widget</option>
+          </select>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: #eef5ff;">Time Display</span>
-          <button type="button" class="reset-btn" onclick="resetComponentPos('timeLine')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        <div>
+          <label style="margin-top: 0; font-size: 0.7rem; color: #bbd4ff;">Weather Details</label>
+          <select id="splitWeather" onchange="toggleSplitWeather()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px; width: 100%; border: 1px solid rgba(0, 229, 255, 0.3); background: rgba(0, 0, 0, 0.4); color: white;">
+            <option value="false">Grouped Widget</option>
+            <option value="true">Split Widgets</option>
+          </select>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: #eef5ff;">Date</span>
-          <button type="button" class="reset-btn" onclick="resetComponentPos('date')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: #eef5ff;">Current Weather</span>
-          <button type="button" class="reset-btn" onclick="resetComponentPos('weather')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: #eef5ff;">Weather Hourly Bar</span>
-          <button type="button" class="reset-btn" onclick="resetComponentPos('weatherTimeline')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.85rem; color: #eef5ff;">Next Zman / Minyanim</span>
-          <button type="button" class="reset-btn" onclick="resetComponentPos('nextZman')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
-        </div>
-        <button type="button" class="reset-all-btn" onclick="resetAllComponentsPos()" style="margin-top: 6px; padding: 10px; font-size: 0.8rem; width: 100%;">🔄 Reset All Components</button>
       </div>
+
+      <!-- Component Resets & Scalers list -->
+      <div id="custom-components-list" style="display: flex; flex-direction: column; gap: 8px;">
+      </div>
+
+      <button type="button" class="reset-all-btn" onclick="resetAllComponentsPos()" style="margin-top: 12px; padding: 10px; font-size: 0.8rem; width: 100%;">🔄 Reset All Components</button>
     </div>
     <label>🎨 Theme Color</label>
     <select id="colorPreset"><option value="#00e5ff">Retro Cyan</option><option value="#00ff66">Coding Green</option><option value="#ff3b30">Red Ember</option><option value="custom">Custom (picker)</option></select>
@@ -947,6 +953,12 @@
   const resetXBtn = document.getElementById('resetXBtn');
   const resetAllAdjBtn = document.getElementById('resetAllAdjBtn');
 
+  // Split and Separated widget DOM elements
+  const weatherMainEl = document.getElementById('weatherMain');
+  const weatherHiLoEl = document.getElementById('weatherHiLo');
+  const weatherRainEl = document.getElementById('weatherRain');
+  const yuMinyanimEl = document.getElementById('yuMinyanim');
+
   let clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
   let clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
   let clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0;
@@ -959,12 +971,16 @@
   }
 
   const componentOffsets = {
-    weekdayContainer: { x: 0, y: 0 },
-    timeLine: { x: 0, y: 0 },
-    date: { x: 0, y: 0 },
-    weather: { x: 0, y: 0 },
-    weatherTimeline: { x: 0, y: 0 },
-    nextZman: { x: 0, y: 0 }
+    weekdayContainer: { x: 0, y: 0, scale: 1.0, visible: true },
+    timeLine: { x: 0, y: 0, scale: 1.0, visible: true },
+    date: { x: 0, y: 0, scale: 1.0, visible: true },
+    weather: { x: 0, y: 0, scale: 1.0, visible: true },
+    weatherMain: { x: 0, y: 0, scale: 1.0, visible: true },
+    weatherHiLo: { x: 0, y: 0, scale: 1.0, visible: true },
+    weatherRain: { x: 0, y: 0, scale: 1.0, visible: true },
+    weatherTimeline: { x: 0, y: 0, scale: 1.0, visible: true },
+    nextZman: { x: 0, y: 0, scale: 1.0, visible: true },
+    yuMinyanim: { x: 0, y: 0, scale: 1.0, visible: true }
   };
 
   function loadComponentsPos() {
@@ -972,10 +988,14 @@
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        for (const [id, pos] of Object.entries(parsed)) {
-          if (componentOffsets[id]) {
-            componentOffsets[id].x = pos.x || 0;
-            componentOffsets[id].y = pos.y || 0;
+        if (parsed && typeof parsed === 'object') {
+          for (const [id, pos] of Object.entries(parsed)) {
+            if (componentOffsets[id] && pos) {
+              componentOffsets[id].x = pos.x || 0;
+              componentOffsets[id].y = pos.y || 0;
+              componentOffsets[id].scale = pos.scale !== undefined ? pos.scale : 1.0;
+              componentOffsets[id].visible = pos.visible !== undefined ? pos.visible : true;
+            }
           }
         }
       } catch (e) {
@@ -990,7 +1010,7 @@
       const el = document.getElementById(id);
       if (el) {
         if (layout === 'custom') {
-          el.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+          el.style.transform = `translate(${pos.x}px, ${pos.y}px) scale(${pos.scale || 1.0})`;
           el.style.cursor = 'grab';
         } else {
           el.style.transform = '';
@@ -998,15 +1018,23 @@
         }
       }
     }
+    updateWidgetVisibility();
   }
 
   window.resetComponentPos = (id) => {
     if (componentOffsets[id]) {
       componentOffsets[id].x = 0;
       componentOffsets[id].y = 0;
+      componentOffsets[id].scale = 1.0;
+      componentOffsets[id].visible = true;
       const el = document.getElementById(id);
-      if (el) el.style.transform = '';
+      if (el) {
+        el.style.transform = '';
+        el.style.display = '';
+      }
       localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+      updateCustomComponentsListUI();
+      applyComponentsPos();
     }
   };
 
@@ -1014,13 +1042,177 @@
     for (const id of Object.keys(componentOffsets)) {
       componentOffsets[id].x = 0;
       componentOffsets[id].y = 0;
+      componentOffsets[id].scale = 1.0;
+      componentOffsets[id].visible = true;
       const el = document.getElementById(id);
-      if (el) el.style.transform = '';
+      if (el) {
+        el.style.transform = '';
+        el.style.display = '';
+      }
     }
     localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+    updateCustomComponentsListUI();
+    applyComponentsPos();
   };
 
-  const draggableIds = ['weekdayContainer', 'timeLine', 'date', 'weather', 'weatherTimeline', 'nextZman'];
+  function updateWidgetVisibility() {
+    const layout = localStorage.layout || 'retro';
+    const isCustom = layout === 'custom';
+    const isSepMinyanim = isCustom && localStorage.separateMinyanim === 'true';
+    const isSplitWeather = isCustom && localStorage.splitWeather === 'true';
+
+    const weatherWidget = document.getElementById('weather');
+    const weatherMain = document.getElementById('weatherMain');
+    const weatherHiLo = document.getElementById('weatherHiLo');
+    const weatherRain = document.getElementById('weatherRain');
+
+    if (isCustom && isSplitWeather) {
+      if (weatherWidget) weatherWidget.style.display = 'none';
+      if (weatherMain) weatherMain.style.display = (componentOffsets.weatherMain && componentOffsets.weatherMain.visible !== false) ? 'inline-flex' : 'none';
+      if (weatherHiLo) weatherHiLo.style.display = (componentOffsets.weatherHiLo && componentOffsets.weatherHiLo.visible !== false) ? 'inline-flex' : 'none';
+      if (weatherRain) weatherRain.style.display = (componentOffsets.weatherRain && componentOffsets.weatherRain.visible !== false) ? 'inline-flex' : 'none';
+    } else {
+      if (weatherWidget) weatherWidget.style.display = ((componentOffsets.weather && componentOffsets.weather.visible !== false) || !isCustom) ? 'inline-flex' : 'none';
+      if (weatherMain) weatherMain.style.display = 'none';
+      if (weatherHiLo) weatherHiLo.style.display = 'none';
+      if (weatherRain) weatherRain.style.display = 'none';
+    }
+
+    const weatherTimelineEl = document.getElementById('weatherTimeline');
+    if (weatherTimelineEl) {
+      const showTimeline = localStorage.showWeatherTimeline === 'true';
+      const visible = !isCustom || (componentOffsets.weatherTimeline && componentOffsets.weatherTimeline.visible !== false);
+      weatherTimelineEl.style.display = (showTimeline && visible) ? 'block' : 'none';
+    }
+
+    const yuMinyanim = document.getElementById('yuMinyanim');
+    if (yuMinyanim) {
+      const showMinyanim = localStorage.showYUMinyanim === 'true';
+      if (isCustom && isSepMinyanim && showMinyanim) {
+        yuMinyanim.style.display = (componentOffsets.yuMinyanim && componentOffsets.yuMinyanim.visible !== false) ? 'flex' : 'none';
+      } else {
+        yuMinyanim.style.display = 'none';
+      }
+    }
+
+    const checkEl = (id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const visible = !isCustom || (componentOffsets[id] && componentOffsets[id].visible !== false);
+        if (!visible) {
+          el.style.display = 'none';
+        } else if (isCustom) {
+          if (el.style.display === 'none') {
+            el.style.display = '';
+          }
+        }
+      }
+    };
+
+    checkEl('weekdayContainer');
+    checkEl('timeLine');
+    checkEl('date');
+    checkEl('nextZman');
+  }
+
+  function updateCustomComponentsListUI() {
+    const container = document.getElementById('custom-components-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const isSepMinyanim = localStorage.separateMinyanim === 'true';
+    const isSplitWeather = localStorage.splitWeather === 'true';
+
+    const activeWidgets = [
+      { id: 'weekdayContainer', name: 'Location & Weekday' },
+      { id: 'timeLine', name: 'Time Display' },
+      { id: 'date', name: 'Date Display' }
+    ];
+
+    if (isSplitWeather) {
+      activeWidgets.push(
+        { id: 'weatherMain', name: 'Weather Temp & Icon' },
+        { id: 'weatherHiLo', name: 'Weather High/Low' },
+        { id: 'weatherRain', name: 'Weather Rain Info' }
+      );
+    } else {
+      activeWidgets.push({ id: 'weather', name: 'Weather Widget' });
+    }
+
+    activeWidgets.push({ id: 'weatherTimeline', name: 'Weather Timeline Bar' });
+
+    if (isSepMinyanim) {
+      activeWidgets.push(
+        { id: 'nextZman', name: 'Zmanim Display' },
+        { id: 'yuMinyanim', name: 'YU Minyanim Display' }
+      );
+    } else {
+      activeWidgets.push({ id: 'nextZman', name: 'Zmanim & Minyanim' });
+    }
+
+    activeWidgets.forEach(w => {
+      const pos = componentOffsets[w.id] || { x: 0, y: 0, scale: 1.0, visible: true };
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.justifyContent = 'space-between';
+      row.style.gap = '8px';
+      row.style.marginBottom = '2px';
+
+      row.innerHTML = `
+        <span style="font-size: 0.8rem; color: #bbd4ff; width: 140px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${w.name}</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <input type="checkbox" id="visible_${w.id}" ${pos.visible !== false ? 'checked' : ''} onchange="toggleComponentVisibility('${w.id}')" title="Show/Hide" style="width: 16px; height: 16px; accent-color: var(--fg); cursor: pointer;">
+          <button type="button" class="mini-scale-btn" onclick="adjustComponentScale('${w.id}', -0.05)" title="Scale Down" style="padding: 4px 8px; font-size: 0.65rem; border-radius: 8px; flex: 0; min-width: 28px;">➖</button>
+          <span id="scale_val_${w.id}" style="font-size: 0.75rem; font-family: monospace; min-width: 36px; text-align: center; color: var(--fg);">${(pos.scale || 1.0).toFixed(2)}x</span>
+          <button type="button" class="mini-scale-btn" onclick="adjustComponentScale('${w.id}', 0.05)" title="Scale Up" style="padding: 4px 8px; font-size: 0.65rem; border-radius: 8px; flex: 0; min-width: 28px;">➕</button>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('${w.id}')" style="padding: 4px 8px; font-size: 0.7rem; flex: 0; min-width: 50px; border-radius: 10px;">Reset</button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  window.toggleSeparateMinyanim = () => {
+    localStorage.separateMinyanim = document.getElementById('separateMinyanim').value;
+    updateWidgetVisibility();
+    updateCustomComponentsListUI();
+    updateNextZmanDisplay();
+    applyComponentsPos();
+  };
+
+  window.toggleSplitWeather = () => {
+    localStorage.splitWeather = document.getElementById('splitWeather').value;
+    updateWidgetVisibility();
+    updateCustomComponentsListUI();
+    updateWeatherDisplay();
+    applyComponentsPos();
+  };
+
+  window.toggleComponentVisibility = (id) => {
+    if (componentOffsets[id]) {
+      const checkbox = document.getElementById(`visible_${id}`);
+      componentOffsets[id].visible = checkbox ? checkbox.checked : true;
+      localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+      applyComponentsPos();
+    }
+  };
+
+  window.adjustComponentScale = (id, delta) => {
+    if (componentOffsets[id]) {
+      let scale = componentOffsets[id].scale || 1.0;
+      scale = Math.min(3.0, Math.max(0.2, scale + delta));
+      componentOffsets[id].scale = scale;
+      
+      const span = document.getElementById(`scale_val_${id}`);
+      if (span) span.textContent = `${scale.toFixed(2)}x`;
+      
+      localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+      applyComponentsPos();
+    }
+  };
+
+  const draggableIds = ['weekdayContainer', 'timeLine', 'date', 'weather', 'weatherMain', 'weatherHiLo', 'weatherRain', 'weatherTimeline', 'nextZman', 'yuMinyanim'];
   let pressTimer = null;
   let activeDraggedEl = null;
   let isDraggingComponent = false;
@@ -1039,8 +1231,9 @@
 
         if (e.type === 'mousedown' && e.button !== 0) return;
 
-        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+        const touch = e.touches && e.touches[0];
+        const clientX = touch ? touch.clientX : e.clientX;
+        const clientY = touch ? touch.clientY : e.clientY;
 
         dragStartPos = { x: clientX, y: clientY };
         elemStartOffset = { x: componentOffsets[id].x, y: componentOffsets[id].y };
@@ -1058,8 +1251,9 @@
       };
 
       const onMove = (e) => {
-        const clientX = e.type === 'touchmove' ? (e.touches[0] ? e.touches[0].clientX : 0) : e.clientX;
-        const clientY = e.type === 'touchmove' ? (e.touches[0] ? e.touches[0].clientY : 0) : e.clientY;
+        const touch = e.touches && e.touches[0];
+        const clientX = touch ? touch.clientX : e.clientX;
+        const clientY = touch ? touch.clientY : e.clientY;
 
         if (pressTimer && !isDraggingComponent) {
           const dx = clientX - dragStartPos.x;
@@ -1456,7 +1650,11 @@
   }
 
   function updateWeatherDisplay() {
-    if (lastTemp === null) { weatherEl.textContent = "⛅ waiting..."; return; }
+    if (lastTemp === null) {
+      if (weatherEl) weatherEl.textContent = "⛅ waiting...";
+      if (weatherMainEl) weatherMainEl.textContent = "⛅ waiting...";
+      return;
+    }
     const fmt = localStorage.weatherFmt || 'extended', icon = getWeatherIcon(lastCode);
     const layout = localStorage.layout || 'sidebar';
     const isSidebar = layout === 'sidebar';
@@ -1479,6 +1677,18 @@
       else if (fmt === 'words') weatherEl.innerHTML = `${icon} ${Math.round(lastTemp)}°F · ${conditionTxt}`;
       else weatherEl.innerHTML = `<span>${icon} ${Math.round(lastTemp)}°F</span> <span>${conditionTxt}</span> <div class="weather-stack"><span>High: ${Math.round(todayH)}°</span><span>Low: ${Math.round(todayL)}°</span></div> <div class="weather-rain">${rainInf}</div>`;
     }
+
+    if (weatherMainEl) {
+      weatherMainEl.innerHTML = `<div style="font-weight: 600;">${icon} ${Math.round(lastTemp)}°F</div><div style="font-size: 0.9em; margin-left: 8px;">${conditionTxt}</div>`;
+    }
+    if (weatherHiLoEl) {
+      weatherHiLoEl.innerHTML = `<div class="weather-stack" style="border-left: none; padding-left: 0; margin-left: 0;"><span>High: ${Math.round(todayH)}°</span><span>Low: ${Math.round(todayL)}°</span></div>`;
+    }
+    if (weatherRainEl) {
+      weatherRainEl.innerHTML = `<div class="weather-rain" style="border-left: none; padding-left: 0; margin-left: 0;">${rainInf}</div>`;
+    }
+
+    updateWidgetVisibility();
   }
 
   async function fetchWeather(lat, lon) {
@@ -1586,7 +1796,9 @@
 
     const uStyle = localStorage.urgentStyle || 'flash';
 
-    if (localStorage.showYUMinyanim === 'true' && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
+    const isSepMinyanim = layout === 'custom' && localStorage.separateMinyanim === 'true';
+
+    if (localStorage.showYUMinyanim === 'true' && !isSepMinyanim && (upcomingZmanim.length > 0 || upcomingMinyanim.length > 0)) {
       const maxRows = isSplit ? 3 : Math.max(upcomingZmanim.length, upcomingMinyanim.length, 1);
       const rowCount = Math.min(maxRows, mLimit);
       
@@ -1722,240 +1934,28 @@
         nextZmanEl.style.display = "inline-block";
       }
     }
-  }
 
-  function renderMinyanimList(list, count, fSize, currNow, style, zmanimList) {
-    let listHtml = "";
-    for (let i = 0; i < count; i++) {
-      const item = list[i];
-      if (item) {
-        const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-        const isTom = item.parsedTime.getDate() !== currNow.getDate();
-        const tomTxt = isTom ? ' <span style="font-size: 0.8em; opacity: 0.8;">(Tom)</span>' : '';
-        let urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
-        if (urgentClass) {
-          if (style === 'flash') urgentClass += ' flash-mode';
-          else if (style === 'fade') urgentClass += ' fade-mode';
-        }
-        listHtml += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fSize};" title="${item.type}: ${item.location}">${timeStr}${tomTxt}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
-      } else if (i < zmanimList.length && i < count) {
-        listHtml += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fSize};">--</div>`;
-      }
-    }
-    return listHtml;
-  }
-
-  async function fetchLocationName(lat, lon) {
-    try {
-      const resp = await fetch(`https://api-bdc.io/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-      if (resp.ok) {
-        const data = await resp.json();
-        let longName = "";
-        let shortName = "";
+    // Render separated YU Minyanim widget if active
+    const yuMinyanimEl = document.getElementById('yuMinyanim');
+    if (yuMinyanimEl) {
+      if (isSepMinyanim && localStorage.showYUMinyanim === 'true') {
+        const rowCount = Math.min(mLimit, 3);
+        const fontSize = isPhone || isSplit ? "0.7em" : "0.8em";
         
-        const cityOrLocality = data.city || data.locality;
-        if (cityOrLocality) {
-          shortName = cityOrLocality;
-          const statePart = data.principalSubdivisionCode ? data.principalSubdivisionCode.split('-')[1] : null;
-          if (statePart) {
-            longName = `${cityOrLocality}, ${statePart}`;
-          } else if (data.principalSubdivision) {
-            longName = `${cityOrLocality}, ${data.principalSubdivision}`;
+        let html = "";
+        const cl = currentZmanimData.candleLighting;
+        const sk = currentZmanimData.sunset;
+        const hz = currentZmanimData.tzeit85deg;
+
+        if (day === 5) {
+          const hasRegularMinyanim = upcomingMinyanim.some(m => m.parsedTime.getDate() === now.getDate());
+          if (hasRegularMinyanim) {
+            html += renderMinyanimList(upcomingMinyanim, rowCount, fontSize, now, uStyle, upcomingZmanim);
+          } else if (cl && now < cl) {
+            html += `<div style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">🕯️ ${cl.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}: Candle Lighting</div>`;
+            if (sk && rowCount > 1) html += `<div style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">🌇 ${sk.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}: Shkiya</div>`;
           } else {
-            longName = cityOrLocality;
+            html += `<div style="padding: 2px 8px; font-size: 1.1em; color: #ffcc00; font-weight: bold; text-align: center; width: 100%;">🕯️ It's Shabbos now!</div>`;
           }
-        } else if (data.principalSubdivision) {
-          shortName = data.principalSubdivision;
-          longName = data.principalSubdivision;
-        }
-        
-        if (longName && shortName) {
-          localStorage.setItem('locationLong', longName);
-          localStorage.setItem('locationShort', shortName);
-          updateLocationDisplay();
-        }
-      }
-    } catch (e) {
-      console.error("Error fetching location name:", e);
-    }
-  }
-
-  function updateLocationDisplay() {
-    const locEl = document.getElementById('location');
-    const sepEl = document.getElementById('weekdaySeparator');
-    if (!locEl) return;
-
-    const showLoc = localStorage.showLocation !== 'false';
-    if (!showLoc) {
-      locEl.textContent = "";
-      if (sepEl) sepEl.style.display = 'none';
-      return;
-    }
-
-    const fmt = localStorage.locationFmt || 'long';
-    let name = fmt === 'short' ? localStorage.getItem('locationShort') : localStorage.getItem('locationLong');
-    if (!name) {
-      const legacy = localStorage.getItem('locationName');
-      if (legacy) {
-        if (fmt === 'short') {
-          name = legacy.split(',')[0].trim();
-        } else {
-          name = legacy;
-        }
-      }
-    }
-
-    locEl.textContent = name || "";
-    if (sepEl) {
-      sepEl.style.display = name ? 'inline-block' : 'none';
-    }
-  }
-
-  function initGeolocationAndZmanim() {
-    // Default to Tiberias coordinates if everything fails
-    const defaultLat = 32.7940, defaultLon = 35.5312;
-    const cachedLat = localStorage.getItem('lastLat');
-    const cachedLon = localStorage.getItem('lastLon');
-
-    let startLat = defaultLat, startLon = defaultLon;
-    if (cachedLat && !isNaN(parseFloat(cachedLat))) startLat = parseFloat(cachedLat);
-    if (cachedLon && !isNaN(parseFloat(cachedLon))) startLon = parseFloat(cachedLon);
-    
-    fetchZmanim(startLat, startLon);
-    fetchWeather(startLat, startLon);
-    fetchLocationName(startLat, startLon);
-
-    const updateLocation = (latitude, longitude) => {
-      if (!cachedLat || Math.abs(parseFloat(cachedLat) - latitude) > 0.01) {
-        localStorage.setItem('lastLat', latitude);
-        localStorage.setItem('lastLon', longitude);
-        fetchZmanim(latitude, longitude);
-        fetchWeather(latitude, longitude);
-        fetchLocationName(latitude, longitude);
-      }
-    };
-
-    // Attempt browser Geolocation first
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(p => {
-        updateLocation(p.coords.latitude, p.coords.longitude);
-      }, (err) => {
-        console.warn("Browser Geolocation failed:", err.message, "- Attempting IP fallback");
-        // Fallback to IP-based Geolocation if browser denies/fails (common for local files)
-        fetch('https://get.geojs.io/v1/ip/geo.json')
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.latitude && data.longitude) {
-              updateLocation(parseFloat(data.latitude), parseFloat(data.longitude));
-              let longName = "";
-              let shortName = "";
-              if (data.city) {
-                shortName = data.city;
-                if (data.region) {
-                  longName = `${data.city}, ${data.region}`;
-                } else {
-                  longName = data.city;
-                }
-              }
-              if (longName && shortName) {
-                localStorage.setItem('locationLong', longName);
-                localStorage.setItem('locationShort', shortName);
-                updateLocationDisplay();
-              }
-            }
-          }).catch(e => console.error("IP Fallback failed:", e));
-      }, { timeout: 10000 });
-    } else {
-      // Fallback for strict context blocks
-      fetch('https://get.geojs.io/v1/ip/geo.json')
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.latitude && data.longitude) {
-            updateLocation(parseFloat(data.latitude), parseFloat(data.longitude));
-            let longName = "";
-            let shortName = "";
-            if (data.city) {
-              shortName = data.city;
-              if (data.region) {
-                longName = `${data.city}, ${data.region}`;
-              } else {
-                longName = data.city;
-              }
-            }
-            if (longName && shortName) {
-              localStorage.setItem('locationLong', longName);
-              localStorage.setItem('locationShort', shortName);
-              updateLocationDisplay();
-            }
-          }
-        }).catch(e => console.error("IP Fallback failed:", e));
-    }
-  }
-
-  function buildZmanimChecklist() {
-    const c = document.getElementById('zmanimChecklist'); if (!c) return; c.innerHTML = '';
-    const toggleBtn = document.createElement('button');
-    toggleBtn.type = "button";
-    toggleBtn.textContent = "Enable/Disable All";
-    toggleBtn.style.gridColumn = "1 / -1";
-    toggleBtn.style.marginBottom = "10px";
-    toggleBtn.onclick = (e) => {
-      e.stopPropagation();
-      const allEnabled = enabledZmanKeys.size === Object.keys(ZMANIM_DB).length;
-      if (allEnabled) enabledZmanKeys.clear();
-      else enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
-      localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
-      buildZmanimChecklist();
-      updateNextZmanDisplay();
-    };
-    c.appendChild(toggleBtn);
-
-    for (const [k, m] of Object.entries(ZMANIM_DB)) {
-      const l = document.createElement('label');
-      l.className = 'zman-check';
-      
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = enabledZmanKeys.has(k);
-      cb.addEventListener('change', e => {
-        if (e.target.checked) enabledZmanKeys.add(k);
-        else enabledZmanKeys.delete(k);
-        localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
-        updateNextZmanDisplay();
-      });
-      
-      const s = document.createElement('span');
-      s.textContent = `${m.he} (${m.display})`;
-      
-      l.appendChild(cb);
-      l.appendChild(s);
-      c.appendChild(l);
-    }
-  }
-
-  function saveAndClose() {
-    localStorage.layout = layoutSelect.value; localStorage.weatherFmt = weatherFmtSelect.value; localStorage.dateFmt = dateFmtSelect.value; localStorage.font = fontSelect.value;
-    localStorage.colorPreset = colorPreset.value; localStorage.customColor = customColor.value; localStorage.bgPreset = bgPreset.value; localStorage.customBg = customBg.value;
-    localStorage.weekdaySize = weekdaySizeSelect.value; localStorage.showTimeExtras = showTimeExtrasSelect.value; localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
-    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value; localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
-    localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value; localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
-    localStorage.weatherIconColor = weatherIconColorSelect.value;
-    localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
-    localStorage.glowEnabled = glowEnabledSelect.value;
-    localStorage.autoFullscreen = autoFullscreenSelect.value;
-    localStorage.urgentStyle = urgentStyleSelect.value;
-    localStorage.urgentColor1 = urgentColor1Input.value;
-    localStorage.urgentColor2 = urgentColor2Input.value;
-    localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
-    localStorage.showLocation = showLocationSelect.value;
-    localStorage.locationFmt = locationFmtSelect.value;
-    localStorage.setItem('alarms', JSON.stringify(alarms));
-    
-    localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
-    localStorage.minyanCount = document.getElementById('minyanCount').value;
-    localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
-    
-    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); fetchYUMinyanim(); updateLocationDisplay(); modal.style.display = 'none';
-  }
-
-  function openModalWithCurrentSettings() {
+        } else if (day === 6) {
+          if (hz && now < hz) {

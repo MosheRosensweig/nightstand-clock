@@ -1080,7 +1080,7 @@
 
     const weatherTimelineEl = document.getElementById('weatherTimeline');
     if (weatherTimelineEl) {
-      const showTimeline = localStorage.showWeatherTimeline === 'true';
+      const showTimeline = localStorage.showWeatherTimeline !== 'false';
       const visible = !isCustom || (componentOffsets.weatherTimeline && componentOffsets.weatherTimeline.visible !== false);
       weatherTimelineEl.style.display = (showTimeline && visible) ? 'block' : 'none';
     }
@@ -1659,7 +1659,7 @@
     const layout = localStorage.layout || 'sidebar';
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
-    weatherTimeline.style.display = (localStorage.showWeatherTimeline === 'true') ? 'block' : 'none';
+    weatherTimeline.style.display = (localStorage.showWeatherTimeline !== 'false') ? 'block' : 'none';
     if (lastWeatherData) updateWeatherTimeline(lastWeatherData);
     
     if (isSidebar || isPhone) {
@@ -1959,3 +1959,493 @@
           }
         } else if (day === 6) {
           if (hz && now < hz) {
+            html += `<div style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; font-size: ${fontSize};">🌌 ${hz.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}: Havdala Time</div>`;
+          } else {
+            html += renderMinyanimList(upcomingMinyanim, rowCount, fontSize, now, uStyle, upcomingZmanim);
+          }
+        } else if (upcomingMinyanim.length > 0) {
+          html += renderMinyanimList(upcomingMinyanim, rowCount, fontSize, now, uStyle, upcomingZmanim);
+        } else {
+          const msg = lastMinyanFetch === 0 ? "Loading schedule..." : "No upcoming Minyanim found";
+          html += `<div style="padding: 2px 8px; font-size: 0.7em; opacity: 0.6; font-style: italic;">${msg}</div>`;
+        }
+
+        yuMinyanimEl.innerHTML = html;
+        yuMinyanimEl.style.display = componentOffsets.yuMinyanim.visible !== false ? "flex" : "none";
+        yuMinyanimEl.style.flexDirection = "column";
+        yuMinyanimEl.style.alignItems = "flex-start";
+        yuMinyanimEl.style.textAlign = "left";
+        yuMinyanimEl.style.background = "rgba(0, 0, 0, 0.45)";
+        yuMinyanimEl.style.padding = isSplit ? "10px 16px" : "14px 20px";
+        yuMinyanimEl.style.borderRadius = "24px";
+        yuMinyanimEl.style.border = "1px solid rgba(0, 229, 255, 0.25)";
+      } else {
+        yuMinyanimEl.style.display = "none";
+      }
+    }
+  }
+
+  function renderMinyanimList(list, count, fSize, currNow, style, zmanimList) {
+    let listHtml = "";
+    for (let i = 0; i < count; i++) {
+      const item = list[i];
+      if (item) {
+        const timeStr = item.parsedTime.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        const isTom = item.parsedTime.getDate() !== currNow.getDate();
+        const tomTxt = isTom ? ' <span style="font-size: 0.8em; opacity: 0.8;">(Tom)</span>' : '';
+        let urgentClass = isUrgent(item.parsedTime) ? 'urgent-zman' : '';
+        if (urgentClass) {
+          if (style === 'flash') urgentClass += ' flash-mode';
+          else if (style === 'fade') urgentClass += ' fade-mode';
+        }
+        listHtml += `<div class="${urgentClass}" style="padding: 2px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: ${fSize};" title="${item.type}: ${item.location}">${timeStr}${tomTxt}: ${item.type} <span style="opacity: 0.7; font-size: 0.9em;">(${item.location})</span></div>`;
+      } else if (i < zmanimList.length && i < count) {
+        listHtml += `<div style="padding: 2px 8px; opacity: 0; font-size: ${fSize};">--</div>`;
+      }
+    }
+    return listHtml;
+  }
+
+  async function fetchLocationName(lat, lon) {
+    try {
+      const resp = await fetch(`https://api-bdc.io/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+      if (resp.ok) {
+        const data = await resp.json();
+        let longName = "";
+        let shortName = "";
+        
+        const cityOrLocality = data.city || data.locality;
+        if (cityOrLocality) {
+          shortName = cityOrLocality;
+          const statePart = data.principalSubdivisionCode ? data.principalSubdivisionCode.split('-')[1] : null;
+          if (statePart) {
+            longName = `${cityOrLocality}, ${statePart}`;
+          } else if (data.principalSubdivision) {
+            longName = `${cityOrLocality}, ${data.principalSubdivision}`;
+          } else {
+            longName = cityOrLocality;
+          }
+        } else if (data.principalSubdivision) {
+          shortName = data.principalSubdivision;
+          longName = data.principalSubdivision;
+        }
+        
+        if (longName && shortName) {
+          localStorage.setItem('locationLong', longName);
+          localStorage.setItem('locationShort', shortName);
+          updateLocationDisplay();
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching location name:", e);
+    }
+  }
+
+  function updateLocationDisplay() {
+    const locEl = document.getElementById('location');
+    const sepEl = document.getElementById('weekdaySeparator');
+    if (!locEl) return;
+
+    const showLoc = localStorage.showLocation !== 'false';
+    if (!showLoc) {
+      locEl.textContent = "";
+      if (sepEl) sepEl.style.display = 'none';
+      return;
+    }
+
+    const fmt = localStorage.locationFmt || 'long';
+    let name = fmt === 'short' ? localStorage.getItem('locationShort') : localStorage.getItem('locationLong');
+    if (!name) {
+      const legacy = localStorage.getItem('locationName');
+      if (legacy) {
+        if (fmt === 'short') {
+          name = legacy.split(',')[0].trim();
+        } else {
+          name = legacy;
+        }
+      }
+    }
+
+    locEl.textContent = name || "";
+    if (sepEl) {
+      sepEl.style.display = name ? 'inline-block' : 'none';
+    }
+  }
+
+  function initGeolocationAndZmanim() {
+    // Default to Tiberias coordinates if everything fails
+    const defaultLat = 32.7940, defaultLon = 35.5312;
+    const cachedLat = localStorage.getItem('lastLat');
+    const cachedLon = localStorage.getItem('lastLon');
+
+    let startLat = defaultLat, startLon = defaultLon;
+    if (cachedLat && !isNaN(parseFloat(cachedLat))) startLat = parseFloat(cachedLat);
+    if (cachedLon && !isNaN(parseFloat(cachedLon))) startLon = parseFloat(cachedLon);
+    
+    fetchZmanim(startLat, startLon);
+    fetchWeather(startLat, startLon);
+    fetchLocationName(startLat, startLon);
+
+    const updateLocation = (latitude, longitude) => {
+      if (!cachedLat || Math.abs(parseFloat(cachedLat) - latitude) > 0.01) {
+        localStorage.setItem('lastLat', latitude);
+        localStorage.setItem('lastLon', longitude);
+        fetchZmanim(latitude, longitude);
+        fetchWeather(latitude, longitude);
+        fetchLocationName(latitude, longitude);
+      }
+    };
+
+    // Attempt browser Geolocation first
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(p => {
+        updateLocation(p.coords.latitude, p.coords.longitude);
+      }, (err) => {
+        console.warn("Browser Geolocation failed:", err.message, "- Attempting IP fallback");
+        // Fallback to IP-based Geolocation if browser denies/fails (common for local files)
+        fetch('https://get.geojs.io/v1/ip/geo.json')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.latitude && data.longitude) {
+              updateLocation(parseFloat(data.latitude), parseFloat(data.longitude));
+              let longName = "";
+              let shortName = "";
+              if (data.city) {
+                shortName = data.city;
+                if (data.region) {
+                  longName = `${data.city}, ${data.region}`;
+                } else {
+                  longName = data.city;
+                }
+              }
+              if (longName && shortName) {
+                localStorage.setItem('locationLong', longName);
+                localStorage.setItem('locationShort', shortName);
+                updateLocationDisplay();
+              }
+            }
+          }).catch(e => console.error("IP Fallback failed:", e));
+      }, { timeout: 10000 });
+    } else {
+      // Fallback for strict context blocks
+      fetch('https://get.geojs.io/v1/ip/geo.json')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.latitude && data.longitude) {
+            updateLocation(parseFloat(data.latitude), parseFloat(data.longitude));
+            let longName = "";
+            let shortName = "";
+            if (data.city) {
+              shortName = data.city;
+              if (data.region) {
+                longName = `${data.city}, ${data.region}`;
+              } else {
+                longName = data.city;
+              }
+            }
+            if (longName && shortName) {
+              localStorage.setItem('locationLong', longName);
+              localStorage.setItem('locationShort', shortName);
+              updateLocationDisplay();
+            }
+          }
+        }).catch(e => console.error("IP Fallback failed:", e));
+    }
+  }
+
+  function buildZmanimChecklist() {
+    const c = document.getElementById('zmanimChecklist'); if (!c) return; c.innerHTML = '';
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = "button";
+    toggleBtn.textContent = "Enable/Disable All";
+    toggleBtn.style.gridColumn = "1 / -1";
+    toggleBtn.style.marginBottom = "10px";
+    toggleBtn.onclick = (e) => {
+      e.stopPropagation();
+      const allEnabled = enabledZmanKeys.size === Object.keys(ZMANIM_DB).length;
+      if (allEnabled) enabledZmanKeys.clear();
+      else enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
+      localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
+      buildZmanimChecklist();
+      updateNextZmanDisplay();
+    };
+    c.appendChild(toggleBtn);
+
+    for (const [k, m] of Object.entries(ZMANIM_DB)) {
+      const l = document.createElement('label');
+      l.className = 'zman-check';
+      
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = enabledZmanKeys.has(k);
+      cb.addEventListener('change', e => {
+        if (e.target.checked) enabledZmanKeys.add(k);
+        else enabledZmanKeys.delete(k);
+        localStorage.setItem('enabledZmanim', JSON.stringify([...enabledZmanKeys]));
+        updateNextZmanDisplay();
+      });
+      
+      const s = document.createElement('span');
+      s.textContent = `${m.he} (${m.display})`;
+      
+      l.appendChild(cb);
+      l.appendChild(s);
+      c.appendChild(l);
+    }
+  }
+
+  function saveAndClose() {
+    localStorage.layout = layoutSelect.value; localStorage.weatherFmt = weatherFmtSelect.value; localStorage.dateFmt = dateFmtSelect.value; localStorage.font = fontSelect.value;
+    localStorage.colorPreset = colorPreset.value; localStorage.customColor = customColor.value; localStorage.bgPreset = bgPreset.value; localStorage.customBg = customBg.value;
+    localStorage.weekdaySize = weekdaySizeSelect.value; localStorage.showTimeExtras = showTimeExtrasSelect.value; localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
+    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value; localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value; localStorage.showWeatherTimeline = showWeatherTimelineSelect.value;
+    localStorage.weatherIconColor = weatherIconColorSelect.value;
+    localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
+    localStorage.glowEnabled = glowEnabledSelect.value;
+    localStorage.autoFullscreen = autoFullscreenSelect.value;
+    localStorage.urgentStyle = urgentStyleSelect.value;
+    localStorage.urgentColor1 = urgentColor1Input.value;
+    localStorage.urgentColor2 = urgentColor2Input.value;
+    localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
+    localStorage.showLocation = showLocationSelect.value;
+    localStorage.locationFmt = locationFmtSelect.value;
+    localStorage.setItem('alarms', JSON.stringify(alarms));
+    
+    localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
+    localStorage.minyanCount = document.getElementById('minyanCount').value;
+    localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
+    
+    localStorage.separateMinyanim = document.getElementById('separateMinyanim').value;
+    localStorage.splitWeather = document.getElementById('splitWeather').value;
+    applyThemeAndStyle(); updateTimeAndDate(); updateWeatherDisplay(); fetchYUMinyanim(); updateLocationDisplay(); modal.style.display = 'none';
+  }
+
+  function openModalWithCurrentSettings() {
+    const defaultLayout = (window.innerWidth <= 1024) ? 'split' : 'retro';
+    layoutSelect.value = localStorage.layout || defaultLayout;
+    weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
+    dateFmtSelect.value = localStorage.dateFmt || 'medium'; fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
+    colorPreset.value = localStorage.colorPreset || '#00e5ff'; customColor.value = localStorage.customColor || '#00e5ff';
+    bgPreset.value = localStorage.bgPreset || '#000000'; customBg.value = localStorage.customBg || '#000000';
+    weekdaySizeSelect.value = localStorage.weekdaySize || '1.2'; showTimeExtrasSelect.value = localStorage.showTimeExtras || 'true';
+    zmanDisplayTypeSelect.value = localStorage.zmanDisplayType || 'time'; showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
+    zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme'; zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
+    weatherColorPresetSelect.value = localStorage.weatherColorPreset || 'theme'; weatherCustomColorInput.value = localStorage.weatherCustomColor || '#00e5ff';
+    showWeatherTimelineSelect.value = localStorage.showWeatherTimeline || 'true';
+    weatherIconColorSelect.value = localStorage.weatherIconColor || 'default';
+    weatherIconCustomColorInput.value = localStorage.weatherIconCustomColor || '#00e5ff';
+    weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
+    glowEnabledSelect.value = localStorage.glowEnabled || 'true';
+    autoFullscreenSelect.value = localStorage.autoFullscreen || 'true';
+    urgentStyleSelect.value = localStorage.urgentStyle || 'flash';
+    urgentColor1Input.value = localStorage.urgentColor1 || '#ff0000';
+    urgentColor2Input.value = localStorage.urgentColor2 || '#000000';
+    urgentFlashSpeedInput.value = localStorage.urgentFlashSpeed || '0.5';
+    urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
+    
+    showLocationSelect.value = localStorage.showLocation || 'true';
+    locationFmtSelect.value = localStorage.locationFmt || 'long';
+    
+    document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
+    document.getElementById('minyanCount').value = localStorage.minyanCount || 3;
+    document.getElementById('urgencyThreshold').value = localStorage.urgencyThreshold || 15;
+
+    const s = localStorage.getItem('alarms'); if (s) alarms = JSON.parse(s); createAlarmUI();
+    const ez = localStorage.getItem('enabledZmanim');
+    if (ez) {
+      const parsed = JSON.parse(ez);
+      enabledZmanKeys = new Set(parsed.length > 0 ? parsed : Object.keys(ZMANIM_DB));
+    } else {
+      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
+    }
+    clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
+    clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
+    clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0;
+    applyClockTransform();
+    loadComponentsPos();
+    applyComponentsPos();
+    document.getElementById('separateMinyanim').value = localStorage.separateMinyanim || 'false';
+    document.getElementById('splitWeather').value = localStorage.splitWeather || 'false';
+    updateCustomComponentsListUI();
+    document.getElementById('custom-layout-settings').style.display = (layoutSelect.value === 'custom') ? 'block' : 'none';
+    buildZmanimChecklist(); modal.style.display = 'flex';
+  }
+
+  function livePreviewAdvanced() {
+    if (modal.style.display !== 'flex') return;
+    localStorage.weekdaySize = weekdaySizeSelect.value; localStorage.showTimeExtras = showTimeExtrasSelect.value;
+    localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
+    localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value;
+    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value; localStorage.layout = layoutSelect.value;
+    localStorage.weatherFmt = weatherFmtSelect.value; localStorage.font = fontSelect.value;
+    localStorage.dateFmt = dateFmtSelect.value;
+    localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
+    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
+    localStorage.weatherIconColor = weatherIconColorSelect.value;
+    localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
+    localStorage.glowEnabled = glowEnabledSelect.value;
+    localStorage.autoFullscreen = autoFullscreenSelect.value;
+    localStorage.urgentStyle = urgentStyleSelect.value;
+    localStorage.urgentColor1 = urgentColor1Input.value;
+    localStorage.urgentColor2 = urgentColor2Input.value;
+    localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
+    localStorage.showLocation = showLocationSelect.value;
+    localStorage.locationFmt = locationFmtSelect.value;
+    
+    localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
+    localStorage.minyanCount = document.getElementById('minyanCount').value;
+    localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
+
+    weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
+    urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
+    document.getElementById('custom-layout-settings').style.display = (layoutSelect.value === 'custom') ? 'block' : 'none';
+    applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay(); updateLocationDisplay();
+  }
+
+  function initializeApp() {
+    try { updateLocationDisplay(); } catch(e) { console.error("updateLocationDisplay error:", e); }
+
+    const cached = localStorage.getItem('cachedMinyanim');
+    const cachedDate = localStorage.getItem('cachedMinyanimDate');
+    const todayStr = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
+    if (cached && cachedDate === todayStr) {
+      try {
+        minyanimData = JSON.parse(cached, (key, value) => {
+          if (key === 'parsedTime') return new Date(value);
+          return value;
+        });
+      } catch(e) {}
+    }
+
+    try { fetchYUMinyanim(); } catch(e) { console.error("fetchYUMinyanim error:", e); }
+
+    try {
+      const ez = localStorage.getItem('enabledZmanim');
+      if (ez) {
+        const parsed = JSON.parse(ez);
+        enabledZmanKeys = new Set(parsed.length > 0 ? parsed : Object.keys(ZMANIM_DB));
+      } else {
+        enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
+      }
+    } catch(e) {
+      console.error("enabledZmanim parse error:", e);
+      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
+    }
+
+    try {
+      applyThemeAndStyle();
+      clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
+      clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
+      clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0;
+      applyClockTransform();
+      loadComponentsPos();
+      applyComponentsPos();
+      initDragHandlers();
+    } catch(e) { console.error("Theme/transform/drag init error:", e); }
+
+    try { updateTimeAndDate(); } catch(e) { console.error("updateTimeAndDate error:", e); }
+    setInterval(() => { try { updateTimeAndDate(); } catch(e) {} }, 1000);
+    setInterval(() => { try { initGeolocationAndZmanim(); } catch(e) {} }, 10*60000);
+    setInterval(() => { try { fetchYUMinyanim(); } catch(e) {} }, 15*60000);
+
+    // Always attempt to fetch data, even if earlier steps fail
+    try { initGeolocationAndZmanim(); } catch(e) { console.error("initGeolocationAndZmanim error:", e); }
+
+    const autoFsHandler = () => {
+      if (localStorage.autoFullscreen !== 'false' && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        toggleFullscreen();
+      }
+      document.removeEventListener('click', autoFsHandler);
+    };
+    document.addEventListener('click', autoFsHandler);
+  }
+
+  async function toggleFullscreen() {
+    const doc = document.documentElement;
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (doc.requestFullscreen) doc.requestFullscreen();
+      else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitFullscreen();
+    }
+  }
+
+  gearBtn.addEventListener('click', openModalWithCurrentSettings);
+  saveBtn.addEventListener('click', saveAndClose);
+  document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
+  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
+  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect, urgentStyleSelect, dateFmtSelect, zmanDisplayTypeSelect, showNextZmanPrefixSelect, document.getElementById('showYUMinyanim'), showLocationSelect, locationFmtSelect].filter(Boolean).forEach(s => s.addEventListener('change', livePreviewAdvanced));
+  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput, urgentColor1Input, urgentColor2Input, urgentFlashSpeedInput, document.getElementById('minyanCount'), document.getElementById('urgencyThreshold')].filter(Boolean).forEach(i => i.addEventListener('input', livePreviewAdvanced));
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = Math.max(0.3, clockScale - 0.05);
+    localStorage.setItem('clockScale', clockScale);
+    applyClockTransform();
+  });
+  if (zoomInBtn) zoomInBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = Math.min(3.0, clockScale + 0.05);
+    localStorage.setItem('clockScale', clockScale);
+    applyClockTransform();
+  });
+  if (resetZoomBtn) resetZoomBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = 1.0;
+    localStorage.setItem('clockScale', clockScale);
+    applyClockTransform();
+  });
+  if (moveDownBtn) moveDownBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateY += 20;
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
+  if (moveUpBtn) moveUpBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateY -= 20;
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
+  if (resetYBtn) resetYBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateY = 0;
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    applyClockTransform();
+  });
+  if (moveLeftBtn) moveLeftBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateX -= 20;
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
+  if (moveRightBtn) moveRightBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateX += 20;
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
+  if (resetXBtn) resetXBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateX = 0;
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
+  if (resetAllAdjBtn) resetAllAdjBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockScale = 1.0;
+    clockTranslateY = 0;
+    clockTranslateX = 0;
+    localStorage.setItem('clockScale', clockScale);
+    localStorage.setItem('clockTranslateY', clockTranslateY);
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
+  try { initializeApp(); } catch(e) { console.error("initializeApp crashed:", e); initGeolocationAndZmanim(); }
+</script>
+</body>
+</html>

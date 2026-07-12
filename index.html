@@ -135,23 +135,25 @@
   .minimal .time-line { font-size: 12vw; }
   .minimal .main-hour-minute { font-weight: 300; }
   
-  .split .time-line { font-size: 13vw; }
-  .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday-container {
+  .split .time-line, .custom .time-line { font-size: 13vw; }
+  .split .main-hour-minute, .split .time-extras, .split .date, .split .weekday-container,
+  .custom .main-hour-minute, .custom .time-extras, .custom .date, .custom .weekday-container {
     font-weight: 600;
     color: var(--fg);
     background: none;
     -webkit-background-clip: initial;
     background-clip: initial;
   }
-  .glow-on .split .main-hour-minute, .glow-on .split .time-extras, .glow-on .split .date, .glow-on .split .weekday-container {
+  .glow-on .split .main-hour-minute, .glow-on .split .time-extras, .glow-on .split .date, .glow-on .split .weekday-container,
+  .glow-on .custom .main-hour-minute, .glow-on .custom .time-extras, .glow-on .custom .date, .glow-on .custom .weekday-container {
     text-shadow: 0 0 12px var(--fg), 0 0 24px rgba(0, 229, 255, 0.4);
   }
-  .glow-on .split .time-extras {
+  .glow-on .split .time-extras, .glow-on .custom .time-extras {
     text-shadow: 0 0 8px var(--fg);
   }
 
-  /* Split View Specific Layout (Mobile Landscape) */
-  .split#clock {
+  /* Split View Specific Layout (Mobile Landscape) & Custom Layout */
+  .split#clock, .custom#clock {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -159,23 +161,24 @@
     align-content: center;
     gap: 0;
   }
-  .split .weekday-container {
+  .split .weekday-container, .custom .weekday-container {
     order: 1;
     margin-bottom: 3vh;
     margin-right: 20px;
   }
-  .split .date {
+  .split .date, .custom .date {
     order: 2;
     margin-top: 0;
     margin-bottom: 3vh;
     font-size: calc(2.2vw * var(--weekday-scale));
   }
-  .split .time-line {
+  .split .time-line, .custom .time-line {
     order: 3;
     width: 100%;
     margin-bottom: 4vh;
   }
-  .split .weather, .split .next-zman, .split .weather-timeline {
+  .split .weather, .split .next-zman, .split .weather-timeline,
+  .custom .weather, .custom .next-zman, .custom .weather-timeline {
     order: 4;
     margin-top: -1vh; /* Nudge up */
   }
@@ -571,11 +574,21 @@
     .weather { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
     .next-zman { font-size: 4vw; padding: 1vh 4vw; margin-top: 2vh; }
     .weekday-container { font-size: calc(6vw * var(--weekday-scale)); margin-bottom: 3vh; }
-    .split .weekday-container { margin-bottom: 3vh; }
+    .split .weekday-container, .custom .weekday-container { margin-bottom: 3vh; }
     .retro .time-line { font-size: 22vw; }
     .simple .time-line { font-size: 18vw; }
     .minimal .time-line { font-size: 14vw; }
-    .split .time-line { font-size: 16vw; }
+    .split .time-line, .custom .time-line { font-size: 16vw; }
+  }
+
+  /* Draggable highlight style for custom view elements during drag-and-drop operations */
+  .draggable-highlight {
+    outline: 2px dashed var(--fg);
+    outline-offset: 4px;
+    background: rgba(0, 229, 255, 0.1) !important;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+    z-index: 1000 !important;
   }
 
   /* Zoom and Position display adjustments */
@@ -684,7 +697,7 @@
     <span id="weekdaySeparator" style="display: none; margin: 0 18px; opacity: 0.7;">·</span>
     <span class="weekday" id="weekday"></span>
   </div>
-  <div class="time-line">
+  <div class="time-line" id="timeLine">
     <span class="main-hour-minute" id="mainTime"></span>
     <div class="time-extras">
       <span class="ampm-indicator" id="ampmIndicator"></span>
@@ -709,9 +722,40 @@
       <option value="simple">Simple & Clean</option>
       <option value="minimal">Minimal pure</option>
       <option value="split">Mobile Landscape</option>
+      <option value="custom">Custom View</option>
       <option value="sidebar">Sidebar Hub (Desktop)</option>
       <option value="phone">Phone View</option>
     </select>
+    <div id="custom-layout-settings" style="display: none; background: rgba(20, 25, 40, 0.4); border-radius: 24px; padding: 14px 18px; border: 1px solid rgba(0, 229, 255, 0.25); margin-top: 10px; margin-bottom: 5px;">
+      <label style="margin-top: 0; font-size: 0.75rem; letter-spacing: 0.5px; color: #bbd4ff;">🔧 Custom Component Resets</label>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: #eef5ff;">Location & Weekday</span>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('weekdayContainer')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: #eef5ff;">Time Display</span>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('timeLine')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: #eef5ff;">Date</span>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('date')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: #eef5ff;">Current Weather</span>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('weather')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: #eef5ff;">Weather Hourly Bar</span>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('weatherTimeline')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: #eef5ff;">Next Zman / Minyanim</span>
+          <button type="button" class="reset-btn" onclick="resetComponentPos('nextZman')" style="padding: 6px 12px; font-size: 0.75rem; flex: 0; width: auto; min-width: 60px;">Reset</button>
+        </div>
+        <button type="button" class="reset-all-btn" onclick="resetAllComponentsPos()" style="margin-top: 6px; padding: 10px; font-size: 0.8rem; width: 100%;">🔄 Reset All Components</button>
+      </div>
+    </div>
     <label>🎨 Theme Color</label>
     <select id="colorPreset"><option value="#00e5ff">Retro Cyan</option><option value="#00ff66">Coding Green</option><option value="#ff3b30">Red Ember</option><option value="custom">Custom (picker)</option></select>
     <input type="color" id="customColor" value="#00e5ff">
@@ -912,6 +956,160 @@
     if (zoomValEl) zoomValEl.textContent = `${Math.round(clockScale * 100)}%`;
     if (yValEl) yValEl.textContent = `${clockTranslateY}px`;
     if (xValEl) xValEl.textContent = `${clockTranslateX}px`;
+  }
+
+  const componentOffsets = {
+    weekdayContainer: { x: 0, y: 0 },
+    timeLine: { x: 0, y: 0 },
+    date: { x: 0, y: 0 },
+    weather: { x: 0, y: 0 },
+    weatherTimeline: { x: 0, y: 0 },
+    nextZman: { x: 0, y: 0 }
+  };
+
+  function loadComponentsPos() {
+    const saved = localStorage.getItem('custom_component_positions');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        for (const [id, pos] of Object.entries(parsed)) {
+          if (componentOffsets[id]) {
+            componentOffsets[id].x = pos.x || 0;
+            componentOffsets[id].y = pos.y || 0;
+          }
+        }
+      } catch (e) {
+        console.error("Error loading component positions:", e);
+      }
+    }
+  }
+
+  function applyComponentsPos() {
+    const layout = localStorage.layout || 'retro';
+    for (const [id, pos] of Object.entries(componentOffsets)) {
+      const el = document.getElementById(id);
+      if (el) {
+        if (layout === 'custom') {
+          el.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+          el.style.cursor = 'grab';
+        } else {
+          el.style.transform = '';
+          el.style.cursor = '';
+        }
+      }
+    }
+  }
+
+  window.resetComponentPos = (id) => {
+    if (componentOffsets[id]) {
+      componentOffsets[id].x = 0;
+      componentOffsets[id].y = 0;
+      const el = document.getElementById(id);
+      if (el) el.style.transform = '';
+      localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+    }
+  };
+
+  window.resetAllComponentsPos = () => {
+    for (const id of Object.keys(componentOffsets)) {
+      componentOffsets[id].x = 0;
+      componentOffsets[id].y = 0;
+      const el = document.getElementById(id);
+      if (el) el.style.transform = '';
+    }
+    localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+  };
+
+  const draggableIds = ['weekdayContainer', 'timeLine', 'date', 'weather', 'weatherTimeline', 'nextZman'];
+  let pressTimer = null;
+  let activeDraggedEl = null;
+  let isDraggingComponent = false;
+  let dragStartPos = { x: 0, y: 0 };
+  let elemStartOffset = { x: 0, y: 0 };
+
+  function initDragHandlers() {
+    draggableIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const onStart = (e) => {
+        const layout = localStorage.layout || 'retro';
+        if (layout !== 'custom') return;
+        if (modal.style.display === 'flex') return;
+
+        if (e.type === 'mousedown' && e.button !== 0) return;
+
+        const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+        dragStartPos = { x: clientX, y: clientY };
+        elemStartOffset = { x: componentOffsets[id].x, y: componentOffsets[id].y };
+
+        if (pressTimer) clearTimeout(pressTimer);
+
+        pressTimer = setTimeout(() => {
+          activeDraggedEl = el;
+          isDraggingComponent = true;
+          el.classList.add('draggable-highlight');
+          el.style.cursor = 'grabbing';
+          el.style.transform = `translate(${componentOffsets[id].x}px, ${componentOffsets[id].y}px) scale(1.03)`;
+          if (navigator.vibrate) navigator.vibrate(50);
+        }, 500);
+      };
+
+      const onMove = (e) => {
+        const clientX = e.type === 'touchmove' ? (e.touches[0] ? e.touches[0].clientX : 0) : e.clientX;
+        const clientY = e.type === 'touchmove' ? (e.touches[0] ? e.touches[0].clientY : 0) : e.clientY;
+
+        if (pressTimer && !isDraggingComponent) {
+          const dx = clientX - dragStartPos.x;
+          const dy = clientY - dragStartPos.y;
+          if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+          }
+        }
+
+        if (isDraggingComponent && activeDraggedEl === el) {
+          if (e.cancelable) e.preventDefault();
+          const dx = clientX - dragStartPos.x;
+          const dy = clientY - dragStartPos.y;
+
+          const scaleAdjustedDx = dx / clockScale;
+          const scaleAdjustedDy = dy / clockScale;
+
+          componentOffsets[id].x = elemStartOffset.x + scaleAdjustedDx;
+          componentOffsets[id].y = elemStartOffset.y + scaleAdjustedDy;
+
+          el.style.transform = `translate(${componentOffsets[id].x}px, ${componentOffsets[id].y}px) scale(1.03)`;
+        }
+      };
+
+      const onEnd = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+
+        if (isDraggingComponent && activeDraggedEl === el) {
+          el.classList.remove('draggable-highlight');
+          el.style.cursor = 'grab';
+          el.style.transform = `translate(${componentOffsets[id].x}px, ${componentOffsets[id].y}px)`;
+          isDraggingComponent = false;
+          activeDraggedEl = null;
+          localStorage.setItem('custom_component_positions', JSON.stringify(componentOffsets));
+        }
+      };
+
+      el.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
+
+      el.addEventListener('touchstart', onStart, { passive: true });
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onEnd);
+      window.addEventListener('touchcancel', onEnd);
+    });
   }
 
   async function fetchYUMinyanim() {
@@ -1167,6 +1365,7 @@
     document.documentElement.style.setProperty('--urgent-speed', (uSpeed * 2) + 's');
     document.documentElement.style.setProperty('--urgent-c1', uC1);
     document.documentElement.style.setProperty('--urgent-c2', uC2);
+    applyComponentsPos();
   }
 
   function updateTimeAndDate() {
@@ -1193,7 +1392,7 @@
 
     const df = localStorage.dateFmt || 'medium';
     const layout = localStorage.layout || (window.innerWidth <= 1024 ? 'split' : 'retro');
-    const isSplit = layout === 'split';
+    const isSplit = layout === 'split' || layout === 'custom';
 
     if (df === 'numeric') {
       dateEl.textContent = now.toLocaleDateString();
@@ -1362,7 +1561,7 @@
     const layout = localStorage.layout || (window.innerWidth <= 1024 ? 'split' : 'retro');
     const isSidebar = layout === 'sidebar';
     const isPhone = layout === 'phone';
-    const isSplit = layout === 'split';
+    const isSplit = layout === 'split' || layout === 'custom';
 
     if (!Object.keys(currentZmanimData).length && minyanimData.length === 0 && !isFetchingMinyanim) {
       nextZmanEl.textContent = "📅 Preparing Zmanim...";
@@ -1760,202 +1959,3 @@
   }
 
   function openModalWithCurrentSettings() {
-    const defaultLayout = (window.innerWidth <= 1024) ? 'split' : 'retro';
-    layoutSelect.value = localStorage.layout || defaultLayout;
-    weatherFmtSelect.value = localStorage.weatherFmt || 'extended';
-    dateFmtSelect.value = localStorage.dateFmt || 'medium'; fontSelect.value = localStorage.font || "'Inter', 'SF Mono', monospace";
-    colorPreset.value = localStorage.colorPreset || '#00e5ff'; customColor.value = localStorage.customColor || '#00e5ff';
-    bgPreset.value = localStorage.bgPreset || '#000000'; customBg.value = localStorage.customBg || '#000000';
-    weekdaySizeSelect.value = localStorage.weekdaySize || '1.2'; showTimeExtrasSelect.value = localStorage.showTimeExtras || 'true';
-    zmanDisplayTypeSelect.value = localStorage.zmanDisplayType || 'time'; showNextZmanPrefixSelect.value = localStorage.showNextZmanPrefix || 'true';
-    zmanColorPresetSelect.value = localStorage.zmanColorPreset || 'theme'; zmanCustomColorInput.value = localStorage.zmanCustomColor || '#00e5ff';
-    weatherColorPresetSelect.value = localStorage.weatherColorPreset || 'theme'; weatherCustomColorInput.value = localStorage.weatherCustomColor || '#00e5ff';
-    showWeatherTimelineSelect.value = localStorage.showWeatherTimeline || 'true';
-    weatherIconColorSelect.value = localStorage.weatherIconColor || 'default';
-    weatherIconCustomColorInput.value = localStorage.weatherIconCustomColor || '#00e5ff';
-    weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
-    glowEnabledSelect.value = localStorage.glowEnabled || 'true';
-    autoFullscreenSelect.value = localStorage.autoFullscreen || 'true';
-    urgentStyleSelect.value = localStorage.urgentStyle || 'flash';
-    urgentColor1Input.value = localStorage.urgentColor1 || '#ff0000';
-    urgentColor2Input.value = localStorage.urgentColor2 || '#000000';
-    urgentFlashSpeedInput.value = localStorage.urgentFlashSpeed || '0.5';
-    urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
-    
-    showLocationSelect.value = localStorage.showLocation || 'true';
-    locationFmtSelect.value = localStorage.locationFmt || 'long';
-    
-    document.getElementById('showYUMinyanim').checked = localStorage.showYUMinyanim === 'true';
-    document.getElementById('minyanCount').value = localStorage.minyanCount || 3;
-    document.getElementById('urgencyThreshold').value = localStorage.urgencyThreshold || 15;
-
-    const s = localStorage.getItem('alarms'); if (s) alarms = JSON.parse(s); createAlarmUI();
-    const ez = localStorage.getItem('enabledZmanim');
-    if (ez) {
-      const parsed = JSON.parse(ez);
-      enabledZmanKeys = new Set(parsed.length > 0 ? parsed : Object.keys(ZMANIM_DB));
-    } else {
-      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
-    }
-    clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
-    clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
-    clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0;
-    applyClockTransform();
-    buildZmanimChecklist(); modal.style.display = 'flex';
-  }
-
-  function livePreviewAdvanced() {
-    if (modal.style.display !== 'flex') return;
-    localStorage.weekdaySize = weekdaySizeSelect.value; localStorage.showTimeExtras = showTimeExtrasSelect.value;
-    localStorage.zmanColorPreset = zmanColorPresetSelect.value; localStorage.zmanCustomColor = zmanCustomColorInput.value;
-    localStorage.weatherColorPreset = weatherColorPresetSelect.value; localStorage.weatherCustomColor = weatherCustomColorInput.value;
-    localStorage.showWeatherTimeline = showWeatherTimelineSelect.value; localStorage.layout = layoutSelect.value;
-    localStorage.weatherFmt = weatherFmtSelect.value; localStorage.font = fontSelect.value;
-    localStorage.dateFmt = dateFmtSelect.value;
-    localStorage.zmanDisplayType = zmanDisplayTypeSelect.value;
-    localStorage.showNextZmanPrefix = showNextZmanPrefixSelect.value;
-    localStorage.weatherIconColor = weatherIconColorSelect.value;
-    localStorage.weatherIconCustomColor = weatherIconCustomColorInput.value;
-    localStorage.glowEnabled = glowEnabledSelect.value;
-    localStorage.autoFullscreen = autoFullscreenSelect.value;
-    localStorage.urgentStyle = urgentStyleSelect.value;
-    localStorage.urgentColor1 = urgentColor1Input.value;
-    localStorage.urgentColor2 = urgentColor2Input.value;
-    localStorage.urgentFlashSpeed = urgentFlashSpeedInput.value;
-    localStorage.showLocation = showLocationSelect.value;
-    localStorage.locationFmt = locationFmtSelect.value;
-    
-    localStorage.showYUMinyanim = document.getElementById('showYUMinyanim').checked;
-    localStorage.minyanCount = document.getElementById('minyanCount').value;
-    localStorage.urgencyThreshold = document.getElementById('urgencyThreshold').value;
-
-    weatherIconCustomColorInput.style.display = (weatherIconColorSelect.value === 'custom') ? 'block' : 'none';
-    urgentFlashSettings.style.display = (urgentStyleSelect.value === 'flash' || urgentStyleSelect.value === 'fade') ? 'block' : 'none';
-    applyThemeAndStyle(); updateNextZmanDisplay(); updateWeatherDisplay(); updateLocationDisplay();
-  }
-
-  function initializeApp() {
-    updateLocationDisplay();
-
-    const cached = localStorage.getItem('cachedMinyanim');
-    const cachedDate = localStorage.getItem('cachedMinyanimDate');
-    const todayStr = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0');
-    if (cached && cachedDate === todayStr) {
-      try {
-        minyanimData = JSON.parse(cached, (key, value) => {
-          if (key === 'parsedTime') return new Date(value);
-          return value;
-        });
-      } catch(e) {}
-    }
-
-    fetchYUMinyanim();
-    const ez = localStorage.getItem('enabledZmanim');
-    if (ez) {
-      const parsed = JSON.parse(ez);
-      enabledZmanKeys = new Set(parsed.length > 0 ? parsed : Object.keys(ZMANIM_DB));
-    } else {
-      enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
-    }
-    applyThemeAndStyle(); clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0; clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0; clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0; applyClockTransform(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
-    setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
-    setInterval(fetchYUMinyanim, 15*60000);
-    initGeolocationAndZmanim();
-
-    const autoFsHandler = () => {
-      if (localStorage.autoFullscreen !== 'false' && !document.fullscreenElement && !document.webkitFullscreenElement) {
-        toggleFullscreen();
-      }
-      document.removeEventListener('click', autoFsHandler);
-    };
-    document.addEventListener('click', autoFsHandler);
-  }
-
-  async function toggleFullscreen() {
-    const doc = document.documentElement;
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      if (doc.requestFullscreen) doc.requestFullscreen();
-      else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitFullscreen();
-    }
-  }
-
-  gearBtn.addEventListener('click', openModalWithCurrentSettings);
-  saveBtn.addEventListener('click', saveAndClose);
-  document.getElementById('addAlarm').addEventListener('click', window.addAlarm);
-  fullscreenBtn.addEventListener('click', toggleFullscreen);
-  advBtn.addEventListener('click', () => { advancedDiv.style.display = (advancedDiv.style.display === 'block' ? 'none' : 'block'); advBtn.textContent = (advancedDiv.style.display === 'block' ? '▲ Hide' : '⚡ Advanced'); });
-  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
-  document.body.addEventListener('click', e => { if (document.body.classList.contains('alarm-active')) { document.body.classList.remove('alarm-active'); if (activeAlarmTimeout) clearTimeout(activeAlarmTimeout); return; } if (modal.style.display !== 'flex' && !e.target.closest('.panel') && !e.target.closest('#gear')) document.body.classList.toggle('hidden-ui'); });
-  [weekdaySizeSelect, showTimeExtrasSelect, zmanColorPresetSelect, weatherColorPresetSelect, showWeatherTimelineSelect, layoutSelect, weatherFmtSelect, fontSelect, weatherIconColorSelect, glowEnabledSelect, autoFullscreenSelect, urgentStyleSelect, dateFmtSelect, zmanDisplayTypeSelect, showNextZmanPrefixSelect, document.getElementById('showYUMinyanim'), showLocationSelect, locationFmtSelect].forEach(s => s.addEventListener('change', livePreviewAdvanced));
-  [zmanCustomColorInput, weatherCustomColorInput, weatherIconCustomColorInput, urgentColor1Input, urgentColor2Input, urgentFlashSpeedInput, document.getElementById('minyanCount'), document.getElementById('urgencyThreshold')].forEach(i => i.addEventListener('input', livePreviewAdvanced));
-  zoomOutBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockScale = Math.max(0.3, clockScale - 0.05);
-    localStorage.setItem('clockScale', clockScale);
-    applyClockTransform();
-  });
-  zoomInBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockScale = Math.min(3.0, clockScale + 0.05);
-    localStorage.setItem('clockScale', clockScale);
-    applyClockTransform();
-  });
-  resetZoomBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockScale = 1.0;
-    localStorage.setItem('clockScale', clockScale);
-    applyClockTransform();
-  });
-  moveDownBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockTranslateY += 20;
-    localStorage.setItem('clockTranslateY', clockTranslateY);
-    applyClockTransform();
-  });
-  moveUpBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockTranslateY -= 20;
-    localStorage.setItem('clockTranslateY', clockTranslateY);
-    applyClockTransform();
-  });
-  resetYBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockTranslateY = 0;
-    localStorage.setItem('clockTranslateY', clockTranslateY);
-    applyClockTransform();
-  });
-  moveLeftBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockTranslateX -= 20;
-    localStorage.setItem('clockTranslateX', clockTranslateX);
-    applyClockTransform();
-  });
-  moveRightBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockTranslateX += 20;
-    localStorage.setItem('clockTranslateX', clockTranslateX);
-    applyClockTransform();
-  });
-  resetXBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockTranslateX = 0;
-    localStorage.setItem('clockTranslateX', clockTranslateX);
-    applyClockTransform();
-  });
-  resetAllAdjBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clockScale = 1.0;
-    clockTranslateY = 0;
-    clockTranslateX = 0;
-    localStorage.setItem('clockScale', clockScale);
-    localStorage.setItem('clockTranslateY', clockTranslateY);
-    localStorage.setItem('clockTranslateX', clockTranslateX);
-    applyClockTransform();
-  });
-  initializeApp();
-</script>
-</body>
-</html>

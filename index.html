@@ -581,7 +581,7 @@
   /* Zoom and Position display adjustments */
   .display-adjustment-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
     background: rgba(20, 25, 40, 0.5);
     border-radius: 28px;
@@ -841,6 +841,17 @@
               <button type="button" id="moveUpBtn" title="Move Up">⬆️</button>
             </div>
           </div>
+          <div class="adj-group">
+            <div class="adj-header">
+              <span>Horizontal Shift</span>
+              <span class="adj-val" id="xVal">0px</span>
+            </div>
+            <div class="adj-buttons">
+              <button type="button" id="moveLeftBtn" title="Move Left">⬅️</button>
+              <button type="button" class="reset-btn" id="resetXBtn">Reset</button>
+              <button type="button" id="moveRightBtn" title="Move Right">➡️</button>
+            </div>
+          </div>
           <button type="button" class="reset-all-btn" id="resetAllAdjBtn">🔄 Reset All Adjustments</button>
         </div>
       </div>
@@ -880,21 +891,27 @@
   // Zoom and Position adjustment elements
   const zoomValEl = document.getElementById('zoomVal');
   const yValEl = document.getElementById('yVal');
+  const xValEl = document.getElementById('xVal');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const zoomInBtn = document.getElementById('zoomInBtn');
   const resetZoomBtn = document.getElementById('resetZoomBtn');
   const moveDownBtn = document.getElementById('moveDownBtn');
   const moveUpBtn = document.getElementById('moveUpBtn');
   const resetYBtn = document.getElementById('resetYBtn');
+  const moveLeftBtn = document.getElementById('moveLeftBtn');
+  const moveRightBtn = document.getElementById('moveRightBtn');
+  const resetXBtn = document.getElementById('resetXBtn');
   const resetAllAdjBtn = document.getElementById('resetAllAdjBtn');
 
   let clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
   let clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
+  let clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0;
 
   function applyClockTransform() {
-    clockContainer.style.transform = `translateY(${clockTranslateY}px) scale(${clockScale})`;
+    clockContainer.style.transform = `translate(${clockTranslateX}px, ${clockTranslateY}px) scale(${clockScale})`;
     if (zoomValEl) zoomValEl.textContent = `${Math.round(clockScale * 100)}%`;
     if (yValEl) yValEl.textContent = `${clockTranslateY}px`;
+    if (xValEl) xValEl.textContent = `${clockTranslateX}px`;
   }
 
   async function fetchYUMinyanim() {
@@ -1782,6 +1799,7 @@
     }
     clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0;
     clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0;
+    clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0;
     applyClockTransform();
     buildZmanimChecklist(); modal.style.display = 'flex';
   }
@@ -1839,7 +1857,7 @@
     } else {
       enabledZmanKeys = new Set(Object.keys(ZMANIM_DB));
     }
-    applyThemeAndStyle(); clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0; clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0; applyClockTransform(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
+    applyThemeAndStyle(); clockScale = parseFloat(localStorage.getItem('clockScale')) || 1.0; clockTranslateY = parseFloat(localStorage.getItem('clockTranslateY')) || 0; clockTranslateX = parseFloat(localStorage.getItem('clockTranslateX')) || 0; applyClockTransform(); updateTimeAndDate(); setInterval(updateTimeAndDate, 1000);
     setInterval(() => { initGeolocationAndZmanim(); }, 10*60000);
     setInterval(fetchYUMinyanim, 15*60000);
     initGeolocationAndZmanim();
@@ -1909,12 +1927,32 @@
     localStorage.setItem('clockTranslateY', clockTranslateY);
     applyClockTransform();
   });
+  moveLeftBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateX -= 20;
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
+  moveRightBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateX += 20;
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
+  resetXBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clockTranslateX = 0;
+    localStorage.setItem('clockTranslateX', clockTranslateX);
+    applyClockTransform();
+  });
   resetAllAdjBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     clockScale = 1.0;
     clockTranslateY = 0;
+    clockTranslateX = 0;
     localStorage.setItem('clockScale', clockScale);
     localStorage.setItem('clockTranslateY', clockTranslateY);
+    localStorage.setItem('clockTranslateX', clockTranslateX);
     applyClockTransform();
   });
   initializeApp();
